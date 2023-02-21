@@ -29,12 +29,13 @@ class Piece:  # Base piece class, used for inheritance
                     if board[pos[0]][pos[1]] is None:  # Checks if the space is empty.
                         possiblemoves.append((pos[0], pos[1]))  # Adds it to the possible moves array.
                     else:
-                        if board[pos[0]][pos[1]].team is not self.team:  # Checks if piece is opposite team
-                            board[pos[0]][pos[1]].killable = True  # If it is then it is killable.
-                            possiblemoves.append((pos[0], pos[1]))  # Adds it to the possible moves array.
-                            break
-                        else:
-                            break
+                        if board[pos[0]][pos[1]] is not 'x':
+                            if board[pos[0]][pos[1]].team is not self.team:  # Checks if piece is opposite team
+                                board[pos[0]][pos[1]].killable = True  # If it is then it is killable.
+                                possiblemoves.append((pos[0], pos[1]))  # Adds it to the possible moves array.
+                                break
+                            else:
+                                break
                 else:
                     break
         return possiblemoves
@@ -52,15 +53,17 @@ class Pawn(Piece):
 
                 if self.onboard((self.x + 1), (self.y + 1)):
                     if board[self.y + 1][self.x + 1] is not None:
-                        if board[self.y + 1][self.x + 1].team is not self.team:
-                            board[self.y + 1][self.x + 1].killable = True
-                            possiblemoves.append((self.y + 1, self.x + 1))
+                        if board[self.y + 1][self.x + 1] is not 'x':
+                            if board[self.y + 1][self.x + 1].team is not self.team:
+                                board[self.y + 1][self.x + 1].killable = True
+                                possiblemoves.append((self.y + 1, self.x + 1))
 
                 if self.onboard((self.x - 1), (self.y + 1)):
                     if board[self.y + 1][self.x - 1] is not None:
-                        if board[self.y + 1][self.x - 1].team is not self.team:
-                            board[self.y + 1][self.x - 1].killable = True
-                            possiblemoves.append((self.y + 1, self.x - 1))
+                        if board[self.y + 1][self.x - 1] is not 'x':
+                          if board[self.y + 1][self.x - 1].team is not self.team:
+                                board[self.y + 1][self.x - 1].killable = True
+                                possiblemoves.append((self.y + 1, self.x - 1))
 
                 if self.y + 1 > 7:
                     pass
@@ -77,15 +80,17 @@ class Pawn(Piece):
 
                 if self.onboard((self.x + 1), (self.y - 1)):
                     if board[self.y - 1][self.x + 1] is not None:
-                        if board[self.y - 1][self.x + 1].team is not self.team:
-                            board[self.y - 1][self.x + 1].killable = True
-                            possiblemoves.append((self.y - 1, self.x + 1))
+                        if board[self.y - 1][self.x + 1] is not 'x':
+                            if board[self.y - 1][self.x + 1].team is not self.team:
+                                board[self.y - 1][self.x + 1].killable = True
+                                possiblemoves.append((self.y - 1, self.x + 1))
 
                 if self.onboard((self.x - 1), (self.y - 1)):
                     if board[self.y - 1][self.x - 1] is not None:
-                        if board[self.y - 1][self.x - 1].team is not self.team:
-                            board[self.y - 1][self.x - 1].killable = True
-                            possiblemoves.append((self.y - 1, self.x - 1))
+                        if board[self.y - 1][self.x - 1] is not 'x':
+                            if board[self.y - 1][self.x - 1].team is not self.team:
+                                board[self.y - 1][self.x - 1].killable = True
+                                possiblemoves.append((self.y - 1, self.x - 1))
 
                 if self.y - 1 < 0:
                     pass
@@ -133,6 +138,30 @@ class King(Piece):
                 onespace.append([[self.y + z, self.x + q]])  # Adds it to the array.
 
         return self.possiblechecker(onespace, board)
+
+    def legalAttacks(self, board):  # Function that checks whether a piece is a real possible move and
+        # whether it is a free space or a piece is there, and decides whether it is killable or not.
+
+        everywhere = [[[self.y, self.x + z] for z in range(1, 8)],
+                      # This array holds all the possible positions for anything in a direct diagonal or straight line from the King
+                      [[self.y - z, self.x] for z in range(1, 8)],
+                      [[self.y, self.x - z] for z in range(1, 8)],
+                      [[self.y + z, self.x + z] for z in range(1, 8)],
+                      [[self.y + z, self.x - z] for z in range(1, 8)],
+                      [[self.y - z, self.x + z] for z in range(1, 8)],
+                      [[self.y - z, self.x - z] for z in range(1, 8)]
+                      ]
+
+        possibleattack = []  # Array to store all the real possible moves.
+        for attempt in everywhere:
+            for pos in attempt:
+                if self.onboard(pos[0], pos[1]):  # Checks if the position is on the board or not.
+                    if board[pos[0]][pos[1]] is not None:  # Checks if the space is empty.
+                        if board[pos[0]][pos[1]] is not 'x':
+                            if board[pos[0]][pos[1]].team is not self.team:
+                                possibleattack.append((pos[0], pos[1]))  # Adds it to the possible moves array.
+
+        return possibleattack
 
 
 class Queen(Piece):

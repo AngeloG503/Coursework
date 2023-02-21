@@ -77,6 +77,9 @@ class Board:  # Class for any boards being created
         self.promotion = False  # Check if a pawn can be promoted
         self.lastPawnJump = None  # Checks for en passant possibility
         self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
+        self.wKing = (7, 4)
+        self.bKing = (0, 4)
+        self.check = False
 
         for x in range(8):  # Sets the board up to have the pieces in the correct places
             self.board[1][x] = pawns[x + 8]
@@ -177,7 +180,6 @@ class Board:  # Class for any boards being created
         end1, end2 = endpos
 
         if str(type(self.board[start1][start2])) == "<class 'pieces.Pawn'>":  # Begins check for en passant
-            print(abs(start1 - end1))
             if abs(start1 - end1) == 2:  # Checks whether the move was a first pawn jump
                self.lastPawnJump = (end1, end2)  # Stores the pawn if it was a jump
                self.turnAddedPassant = 0
@@ -314,6 +316,42 @@ class Board:  # Class for any boards being created
                 self.turnAddedPassant = 0
                 self.lastPawnJump = None
 
+    def kingTracker(self):
+
+         for z in range(-1, 2):  # Starts from a negative number that makes it so I can build a 1x1 grid around the piece
+             for q in range(-1, 2):
+                 if -1 < self.bKing[0] + z < 8:
+                     if -1 < self.bKing[1] + q < 8:
+                         if str(type(self.board[z][q])) == "<class 'pieces.King'>":
+                             self.bKing = (z, q)
+
+         for z in range(-1, 2):  # Starts from a negative number that makes it so I can build a 1x1 grid around the piece
+             for q in range(-1, 2):
+                 if -1 < self.wKing[0] + z < 8:
+                     if -1 < self.wKing[1] + q < 8:
+                         if str(type(self.board[z][q])) == "<class 'pieces.King'>":
+                             self.wKing = (z, q)
+
+
+    def checkChecker(self):
+        blegalAttacks = self.board[self.bKing[0]][self.bKing[1]].legalAttacks(self.board)
+        wlegalAttacks = self.board[self.wKing[0]][self.wKing[1]].legalAttacks(self.board)
+
+        for pieces in blegalAttacks:
+            temp = self.board[pieces[0]][pieces[1]].possible(self.board)
+            for pos in temp:
+                if pos == self.bKing:
+                    self.check = True
+                    break
+
+        for pieces in wlegalAttacks:
+            temp = self.board[pieces[0]][pieces[1]].possible(self.board)
+            for pos in temp:
+                if pos == self.wKing:
+                    self.check = True
+                    break
+
+
     def openg(self):
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
@@ -367,9 +405,12 @@ class Board:  # Class for any boards being created
                                 self.move(selected, (y, x))  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                 self.enPassantCheck()
+                                self.kingTracker()
+                                self.checkChecker()
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
+                                print(self.check)
 
                             else:
                                 self.resetgrid()
@@ -386,10 +427,12 @@ class Board:  # Class for any boards being created
                                     self.move(selected, (y, x))  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                 self.enPassantCheck()
+                                self.kingTracker()
+                                self.checkChecker()
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
-                                print(self.lastPawnJump, "Testing For En Passant")
+                                print(self.check)
 
                             else:
                                 self.resetgrid()
