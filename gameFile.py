@@ -1,4 +1,5 @@
 import pygame
+import pygame_menu
 from pieces import Pawn, King, Queen, Bishop, Horse, Rook
 
 wP1, wP2, wP3, wP4, wP5, wP6, wP7, wP8 = Pawn("white", "wP.png", (9, 600, 100, 100)), Pawn("white", "wP.png", (
@@ -73,6 +74,7 @@ class Board:  # Class for any boards being created
         self.grid = []  # Holds each separate "square" and allows for data to be stored within this
         self.board = [[None for _ in range(8)] for _ in range(8)]  # 3D array used as the board
         self.turn = 0
+        self.promotion = False
 
         for x in range(8):  # Sets the board up to have the pieces in the correct places
             self.board[1][x] = pawns[x + 8]
@@ -175,25 +177,94 @@ class Board:  # Class for any boards being created
                     self.board[z][q].killable = False
 
     def checkPawn(self):
+        pos = (None, None)
         for z in range(8):  # Checks if there are any pawns in the final rows.
             if str(type(self.board[0][z])) == "<class 'pieces.Pawn'>":  # Checks whether the piece is or isn't a pawn.
-                self.pawnChange((0, z))  # Initiates pawn change function
+                self.promotion = True  # Initiates pawn change function
+                pos = (z, 0)  # Returns pos of pawn
+                break
             elif str(type(self.board[7][z])) == "<class 'pieces.Pawn'>":  # Checks whether the piece is or isn't a pawn.
-                self.pawnChange((7, z))  # Initiates pawn change function
+                self.promotion = True  # Initiates pawn change function
+                pos = (z, 0)  # Returns pos of pawn
+                break
 
-    def pawnChange(self, pos):
-        name = "queen" + str(self.turn)
-        y, x = pos
+        return pos
+
+
+    def pawnChange(self, choice, pos):
+        y, x = pos[1], pos[0]
         if self.board[y][x].team == "black":
-            name = Queen("black", "bQ.png", self.board[y][x].rect)  # Creates a new class for the new queen.
-            name.y, name.x = y, x  # Uses old position
-            name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
-            self.board[y][x] = name
+            if choice == "Queen":
+                name = Queen("white", "bQ.png", self.board[y][x].rect)  # Creates a new class for the new queen.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Rook":
+                name = Rook("white", "bR.png", self.board[y][x].rect)  # Creates a new class for the new rook.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Horse":
+                name = Horse("white", "bH.png", self.board[y][x].rect)  # Creates a new class for the new horse.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Bishop":
+                name = Bishop("white", "bB.png", self.board[y][x].rect)  # Creates a new class for the new bishop.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
         elif self.board[y][x].team == "white":
-            name = Queen("white", "wQ.png", self.board[y][x].rect)  # Creates a new class for the new queen.
-            name.y, name.x = y, x  # Uses old position
-            name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
-            self.board[y][x] = name
+            if choice == "Queen":
+                name = Queen("white", "wQ.png", self.board[y][x].rect)  # Creates a new class for the new queen.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Rook":
+                name = Rook("white", "wR.png", self.board[y][x].rect)  # Creates a new class for the new rook.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Horse":
+                name = Horse("white", "wH.png", self.board[y][x].rect)  # Creates a new class for the new horse.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+            elif choice == "Bishop":
+                name = Bishop("white", "wB.png", self.board[y][x].rect)  # Creates a new class for the new bishop.
+                name.y, name.x = y, x  # Uses old position
+                name.moveCount = self.board[y][x].moveCount  # Movecount for stats sake
+                self.board[y][x] = name
+                self.promotion = False
+
+    def menuPawnPromote(self, screen):
+        pos = self.checkPawn()
+        menu = pygame_menu.Menu('Pawn Promotion', 400, 300,
+                                theme=pygame_menu.themes.THEME_BLUE)
+
+        menu.add.button('Bishop', self.pawnChange, "Bishop", pos)
+        menu.add.button('Rook', self.pawnChange, "Rook", pos)
+        menu.add.button('Horse', self.pawnChange, "Horse", pos)
+        menu.add.button('Queen', self.pawnChange, "Queen", pos)
+        menu.add.button('Confirm', menu.disable)
+
+        menu.mainloop(screen)
+
+
 
     def openg(self):
         pygame.init()  # Initialise pygame
@@ -207,6 +278,9 @@ class Board:  # Class for any boards being created
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:  # User clicking the close button
                     running = False
+
+                elif self.promotion:
+                    self.menuPawnPromote(self.screen)
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:  # User clicking anywhere on the game window
                     pos = pygame.mouse.get_pos()  # Gets the coordinates of the mouse
@@ -263,7 +337,5 @@ class Board:  # Class for any boards being created
                             else:
                                 self.resetgrid()
                                 picked = False
-
-
 
             self.refresh(grid)
