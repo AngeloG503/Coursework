@@ -74,7 +74,9 @@ class Board:  # Class for any boards being created
         self.grid = []  # Holds each separate "square" and allows for data to be stored within this
         self.board = [[None for _ in range(8)] for _ in range(8)]  # 3D array used as the board
         self.turn = 0
-        self.promotion = False
+        self.promotion = False  # Check if a pawn can be promoted
+        self.lastPawnJump = None  # Checks for en passant possibility
+        self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
 
         for x in range(8):  # Sets the board up to have the pieces in the correct places
             self.board[1][x] = pawns[x + 8]
@@ -106,6 +108,7 @@ class Board:  # Class for any boards being created
             for pos in row:  # Runs through every square
                 self.draw(pos.colour, pos.y, pos.x)
                 self.setup(pos)
+
         self.gridlines()
         pygame.display.update()  # pygame update
 
@@ -134,6 +137,23 @@ class Board:  # Class for any boards being created
     def posmovesSel(self, piece):  # Takes selected piece and marks all possible moves.
         possible = piece.possible(self.board)
         print(possible)
+        print(str(type(piece)))
+
+        if str(type(piece)) == "<class 'pieces.Pawn'>":  # If the piece is a pawn then en passant is possible
+            if self.lastPawnJump is not None:  # Checks to see the chances
+                if piece.team == "white":  # Checks team
+                    if piece.y == self.lastPawnJump[0]:  # Checks if the piece is killable in relation to selected piece
+                        if piece.x + 1 == self.lastPawnJump[1]:
+                            possible.append((self.lastPawnJump[0] - 1, self.lastPawnJump[1]))  # Appends if it is
+                        elif piece.x - 1 == self.lastPawnJump[1]:
+                            possible.append((self.lastPawnJump[0] - 1, self.lastPawnJump[1]))  # Appends if it is
+                else:
+                    if piece.y == self.lastPawnJump[0]:  # Checks if the piece is killable in relation to selected piece
+                        if piece.x + 1 == self.lastPawnJump[1]:
+                            possible.append((self.lastPawnJump[0] + 1, self.lastPawnJump[1]))  # Appends if it is
+                        elif piece.x - 1 == self.lastPawnJump[1]:
+                            possible.append((self.lastPawnJump[0] + 1, self.lastPawnJump[1]))  # Appends if it is
+
         for pos in possible:  # Loops through the array that holds all possible moves
             if self.board[pos[0]][pos[1]] is None:
                 self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
@@ -156,9 +176,22 @@ class Board:  # Class for any boards being created
         start2, start1 = startpos  # Moves the positions from a tuple to variables to make them more accessible
         end1, end2 = endpos
 
-        self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
-        self.board[start1][start2] = None  # Changes previous square to nothing
-        self.board[end1][end2].moveCount += 1  # Adds one to the move count
+        if str(type(self.board[start1][start2])) == "<class 'pieces.Pawn'>":  # Begins check for en passant
+            print(abs(start1 - end1))
+            if abs(start1 - end1) == 2:  # Checks whether the move was a first pawn jump
+               self.lastPawnJump = (end1, end2)  # Stores the pawn if it was a jump
+               self.turnAddedPassant = 0
+               self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
+               self.board[start1][start2] = None  # Changes previous square to nothing
+               self.board[end1][end2].moveCount += 1  # Adds one to the move count
+            else:  # Normal move without storing if it wasn't a jump
+                self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
+                self.board[start1][start2] = None  # Changes previous square to nothing
+                self.board[end1][end2].moveCount += 1  # Adds one to the move count
+        else:
+            self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
+            self.board[start1][start2] = None  # Changes previous square to nothing
+            self.board[end1][end2].moveCount += 1  # Adds one to the move count
         print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
 
     def resetgrid(self):  # Loops through the board and essentially just makes sure the colour of each square is default
@@ -264,7 +297,22 @@ class Board:  # Class for any boards being created
 
         menu.mainloop(screen)
 
+    def moveEnPassant(self, startpos, enpassantpos):
+        start2, start1 = startpos
+        enp1, enp2 = enpassantpos
 
+        self.board[enp1][enp2] = None  # Kills the EnPassant Pawn
+        self.board[enp1 - 1][enp2] = self.board[start1][start2]  # Moves the correct piece to the correct location
+        self.board[start1][start2] = None  # Changes previous square to nothing
+        self.board[enp1 - 1][enp2].moveCount += 1  # Adds one to the move count
+
+    def enPassantCheck(self):
+        if self.lastPawnJump is not None:  # Checker to see if en passant is still viable
+            if self.turnAddedPassant == 0:
+                self.turnAddedPassant += 1  # Adds one to the turn counter so it will reset next turn
+            else:  # If not reset it
+                self.turnAddedPassant = 0
+                self.lastPawnJump = None
 
     def openg(self):
         pygame.init()  # Initialise pygame
@@ -318,6 +366,7 @@ class Board:  # Class for any boards being created
                             if self.board[y][x].killable:  # This is for when a piece occupies the space
                                 self.move(selected, (y, x))  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                self.enPassantCheck()
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
@@ -328,14 +377,23 @@ class Board:  # Class for any boards being created
 
                         except:
                             if self.board[y][x] == 'x':  # This is for when its an empty space
-                                self.move(selected, (y, x))  # Moves the piece accordingly
+                                if self.lastPawnJump != None:
+                                    if x != selected[0]:
+                                        self.moveEnPassant(selected, self.lastPawnJump)  # Runs en passant if check completes.
+                                    else:
+                                        self.move(selected, (y, x))  # Moves the piece accordingly
+                                else:
+                                    self.move(selected, (y, x))  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                self.enPassantCheck()
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
+                                print(self.lastPawnJump, "Testing For En Passant")
 
                             else:
                                 self.resetgrid()
                                 picked = False
+
 
             self.refresh(grid)
