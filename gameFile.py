@@ -79,7 +79,8 @@ class Board:  # Class for any boards being created
         self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
         self.wKing = (7, 4)
         self.bKing = (0, 4)
-        self.check = False
+        self.bCheck = False
+        self.wCheck = False
 
         for x in range(8):  # Sets the board up to have the pieces in the correct places
             self.board[1][x] = pawns[x + 8]
@@ -341,15 +342,23 @@ class Board:  # Class for any boards being created
             temp = self.board[pieces[0]][pieces[1]].possible(self.board)
             for pos in temp:
                 if pos == self.bKing:
-                    self.check = True
+                    self.bCheck = True
                     break
+            if self.bCheck == True:
+                break
+            else:
+                self.bCheck = False
 
         for pieces in wlegalAttacks:
             temp = self.board[pieces[0]][pieces[1]].possible(self.board)
             for pos in temp:
                 if pos == self.wKing:
-                    self.check = True
+                    self.wCheck = True
                     break
+            if self.wCheck == True:
+                break
+            else:
+                self.wCheck = False
 
 
     def openg(self):
@@ -372,6 +381,7 @@ class Board:  # Class for any boards being created
                     pos = pygame.mouse.get_pos()  # Gets the coordinates of the mouse
                     x, y = self.locatesquare(pos)  # Saves the coordinates of the square the mouse selected
                     print(x, y)  # Testing Purposes
+
                     if not picked:
                         if self.board[y][x] is not None:
                             if self.turn % 2 == 0 and self.board[y][x].team == "white":  # Checks if its the correct turn
@@ -410,7 +420,6 @@ class Board:  # Class for any boards being created
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
-                                print(self.check)
 
                             else:
                                 self.resetgrid()
@@ -432,7 +441,6 @@ class Board:  # Class for any boards being created
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
-                                print(self.check)
 
                             else:
                                 self.resetgrid()

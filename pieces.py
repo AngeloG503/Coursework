@@ -143,7 +143,7 @@ class King(Piece):
         # whether it is a free space or a piece is there, and decides whether it is killable or not.
 
         everywhere = [[[self.y, self.x + z] for z in range(1, 8)],
-                      # This array holds all the possible positions for anything in a direct diagonal or straight line from the King
+                      [[self.y + z, self.x] for z in range(1, 8)],  # This array holds all the possible positions for anything in a direct diagonal or straight line from the King
                       [[self.y - z, self.x] for z in range(1, 8)],
                       [[self.y, self.x - z] for z in range(1, 8)],
                       [[self.y + z, self.x + z] for z in range(1, 8)],
@@ -153,6 +153,7 @@ class King(Piece):
                       ]
 
         possibleattack = []  # Array to store all the real possible moves.
+
         for attempt in everywhere:
             for pos in attempt:
                 if self.onboard(pos[0], pos[1]):  # Checks if the position is on the board or not.
