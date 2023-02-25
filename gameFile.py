@@ -79,8 +79,7 @@ class Board:  # Class for any boards being created
         self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
         self.wKing = (7, 4)
         self.bKing = (0, 4)
-        self.bCheck = False
-        self.wCheck = False
+        self.check = False
 
         for x in range(8):  # Sets the board up to have the pieces in the correct places
             self.board[1][x] = pawns[x + 8]
@@ -141,7 +140,6 @@ class Board:  # Class for any boards being created
     def posmovesSel(self, piece):  # Takes selected piece and marks all possible moves.
         possible = piece.possible(self.board)
         print(possible)
-        print(str(type(piece)))
 
         if str(type(piece)) == "<class 'pieces.Pawn'>":  # If the piece is a pawn then en passant is possible
             if self.lastPawnJump is not None:  # Checks to see the chances
@@ -158,11 +156,33 @@ class Board:  # Class for any boards being created
                         elif piece.x - 1 == self.lastPawnJump[1]:
                             possible.append((self.lastPawnJump[0] + 1, self.lastPawnJump[1]))  # Appends if it is
 
-        for pos in possible:  # Loops through the array that holds all possible moves
-            if self.board[pos[0]][pos[1]] is None:
-                self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
-            else:
-                self.board[pos[0]][pos[1]].killable = True  # Marking a killable piece as such
+        if piece.team == "white":
+          if self.check == True:
+            for pos in possible:  # Loops through the array that holds all possible moves
+              if self.board[pos[0]][pos[1]] is None and self.posMoveCheckChecker(piece, pos) == True:
+                  self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
+              elif self.posMoveCheckChecker(piece, pos) == True:
+                  self.board[pos[0]][pos[1]].killable = True  # Marking a killable piece as such
+          else:
+                for pos in possible:  # Loops through the array that holds all possible moves
+                    if self.board[pos[0]][pos[1]] is None:
+                        self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
+                    else:
+                        self.board[pos[0]][pos[1]].killable = True  # Marking a killable piece as such
+        elif piece.team == "black":
+          if self.check == True:
+            for pos in possible:  # Loops through the array that holds all possible moves
+              if self.board[pos[0]][pos[1]] is None and self.posMoveCheckChecker(piece, pos) == True:
+                  self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
+              elif self.posMoveCheckChecker(piece, pos) == True:
+                  self.board[pos[0]][pos[1]].killable = True  # Marking a killable piece as such
+          else:
+            for pos in possible:  # Loops through the array that holds all possible moves
+                if self.board[pos[0]][pos[1]] is None:
+                    self.board[pos[0]][pos[1]] = 'x'  # The symbol used to mark an empty space as a possible move
+                else:
+                    self.board[pos[0]][pos[1]].killable = True  # Marking a killable piece as such
+              
         return possible
 
     def visible(self, moves):
@@ -176,26 +196,26 @@ class Board:  # Class for any boards being created
             pygame.draw.line(self.screen, dbrown, (0, x*width), (800, x*width))
             pygame.draw.line(self.screen, dbrown, (x*width, 0), (x*width, 800))
 
-    def move(self, startpos, endpos):
+    def move(self, startpos, endpos, board):
         start2, start1 = startpos  # Moves the positions from a tuple to variables to make them more accessible
         end1, end2 = endpos
 
-        if str(type(self.board[start1][start2])) == "<class 'pieces.Pawn'>":  # Begins check for en passant
+        if str(type(board[start1][start2])) == "<class 'pieces.Pawn'>":  # Begins check for en passant
             if abs(start1 - end1) == 2:  # Checks whether the move was a first pawn jump
                self.lastPawnJump = (end1, end2)  # Stores the pawn if it was a jump
                self.turnAddedPassant = 0
-               self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
-               self.board[start1][start2] = None  # Changes previous square to nothing
-               self.board[end1][end2].moveCount += 1  # Adds one to the move count
+               board[end1][end2] = board[start1][start2]  # Changes the end square to contain the piece
+               board[start1][start2] = None  # Changes previous square to nothing
+               board[end1][end2].moveCount += 1  # Adds one to the move count
             else:  # Normal move without storing if it wasn't a jump
-                self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
-                self.board[start1][start2] = None  # Changes previous square to nothing
-                self.board[end1][end2].moveCount += 1  # Adds one to the move count
+                board[end1][end2] = board[start1][start2]  # Changes the end square to contain the piece
+                board[start1][start2] = None  # Changes previous square to nothing
+                board[end1][end2].moveCount += 1  # Adds one to the move count
         else:
-            self.board[end1][end2] = self.board[start1][start2]  # Changes the end square to contain the piece
-            self.board[start1][start2] = None  # Changes previous square to nothing
-            self.board[end1][end2].moveCount += 1  # Adds one to the move count
-        print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
+            board[end1][end2] = board[start1][start2]  # Changes the end square to contain the piece
+            board[start1][start2] = None  # Changes previous square to nothing
+            board[end1][end2].moveCount += 1  # Adds one to the move count
+        # print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
 
     def resetgrid(self):  # Loops through the board and essentially just makes sure the colour of each square is default
         for z in range(8):
@@ -334,32 +354,44 @@ class Board:  # Class for any boards being created
                              self.wKing = (z, q)
 
 
-    def checkChecker(self):
-        blegalAttacks = self.board[self.bKing[0]][self.bKing[1]].legalAttacks(self.board)
-        wlegalAttacks = self.board[self.wKing[0]][self.wKing[1]].legalAttacks(self.board)
+    def checkChecker(self, board):
+      flag = False
 
+      if self.turn % 2 == 0:
+        wlegalAttacks = board[self.wKing[0]][self.wKing[1]].legalAttacks(board)
+        for pieces in wlegalAttacks:
+          temp = board[pieces[0]][pieces[1]].possible(board)
+          for pos in temp:
+              if pos == self.wKing:
+                  flag = True
+                  return True
+                  break
+          if flag == True:
+               break
+          else:
+              return False
+
+      else:
+        blegalAttacks = board[self.bKing[0]][self.bKing[1]].legalAttacks(board)
         for pieces in blegalAttacks:
-            temp = self.board[pieces[0]][pieces[1]].possible(self.board)
+            temp = board[pieces[0]][pieces[1]].possible(board)
             for pos in temp:
                 if pos == self.bKing:
-                    self.bCheck = True
+                    flag = True
                     break
-            if self.bCheck == True:
+            if flag == True:
                 break
             else:
-                self.bCheck = False
-
-        for pieces in wlegalAttacks:
-            temp = self.board[pieces[0]][pieces[1]].possible(self.board)
-            for pos in temp:
-                if pos == self.wKing:
-                    self.wCheck = True
-                    break
-            if self.wCheck == True:
-                break
-            else:
-                self.wCheck = False
-
+                flag = False
+          
+    def posMoveCheckChecker(self, piece, posmove):
+      copy = self.board
+      self.move((piece.x, piece.y), posmove, copy)
+      if self.checkChecker(copy) == False:
+        return True
+      elif self.checkChecker(copy) == True:
+        return False
+      
 
     def openg(self):
         pygame.init()  # Initialise pygame
@@ -416,7 +448,7 @@ class Board:  # Class for any boards being created
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                 self.enPassantCheck()
                                 self.kingTracker()
-                                self.checkChecker()
+                                self.check = self.checkChecker(self.board)
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
@@ -429,15 +461,16 @@ class Board:  # Class for any boards being created
                             if self.board[y][x] == 'x':  # This is for when its an empty space
                                 if self.lastPawnJump != None:
                                     if x != selected[0]:
+                                      if str(type(selected)) == "<class 'pieces.Pawn'>":
                                         self.moveEnPassant(selected, self.lastPawnJump)  # Runs en passant if check completes.
                                     else:
-                                        self.move(selected, (y, x))  # Moves the piece accordingly
+                                        self.move(selected, (y, x), self.board)  # Moves the piece accordingly
                                 else:
-                                    self.move(selected, (y, x))  # Moves the piece accordingly
+                                    self.move(selected, (y, x), self.board)  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                 self.enPassantCheck()
                                 self.kingTracker()
-                                self.checkChecker()
+                                self.check = self.checkChecker(self.board)
                                 self.resetgrid()
                                 self.checkPawn()
                                 picked = False
