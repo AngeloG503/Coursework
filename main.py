@@ -1,5 +1,10 @@
 from gameFile import Board
+from interface import Menus, Account
 
-b = Board()
+ac = Account()
+menu = Menus(ac)
+menu.mainLoop()
 
-b.openg()
+# b = Board()
+
+# b.openg()
