@@ -1,6 +1,5 @@
-from tkinter import *
-from board import playgame
-from visuals import *
+import pygame
+import pygame-menu
 import sqlite3 as sql
 
 
@@ -176,6 +175,64 @@ class GUI:
             pS = Button(main, text="Print Scoreboard", command=lambda: [print("Scoreboard")])
             pS.place(height=50, width=100, x=300, y=350)
 
+
+
+class Menus():
+  def __init__(self):
+    self.myimage = pygame_menu.baseimage.BaseImage(
+    image_path="bgImage.png",
+    drawing_mode=pygame_menu.baseimage.IMAGE_MODE_CENTER,
+    offset=(0,0))
+    
+    self.mytheme = Theme(background_color=self.myimage, # transparent background
+                title_background_color=(4, 47, 126),
+                title_font_shadow=True,
+                widget_padding=25)
+
+  def loginMenu(self):
+    loginmenu = pygame_menu.Menu('Log In',
+                                800,
+                                800,
+                                theme=self.mytheme)
+
+
+    loginmenu.add.text_input("Username: ", default="JohnDoe1999")
+    loginmenu.add.text_input("Password: ", password=True)
+    
+    loginmenu.add.button('Log In', self.pawnChange)
+    loginmenu.add.button('Exit', self.pawnChange)
+
+    loginmenu.mainloop(screen)
+
+  def signupMenu(self):
+    signupmenu = pygame_menu.Menu('Log In',
+                                800,
+                                800,
+                                theme=self.mytheme)
+
+
+    loginmenu.add.text_input("Username: ", default="JohnDoe1999")
+    loginmenu.add.text_input("Password: ", password=True)
+    
+    loginmenu.add.button('Log In', self.pawnChange)
+    loginmenu.add.button('Exit', self.pawnChange)
+
+    loginmenu.mainloop(screen)
+
+  
+
+  def mainMenu(self):
+    mainmenu = pygame_menu.Menu('Main Menu',
+                                800,
+                                800,
+                                theme=self.mytheme)
+
+    mainmenu.add.button('Log In', self.pawnChange)
+    mainmenu.add.button('Sign Up', self.pawnChange)
+    mainmenu.add.button('View Leaderboards', self.pawnChange)
+    mainmenu.add.button('Exit', self.pawnChange)
+
+    mainmenu.mainloop(screen)
 
 ac = Account()
 gui = GUI()
