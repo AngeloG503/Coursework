@@ -181,7 +181,7 @@ class Board:  # Class for any boards being created
     def posmovesSel(
             self, piece):  # Takes selected piece and marks all possible moves.
         possible = piece.possible(self.board)
-        print(possible)
+        print(possible, "Possible Moves")
 
         if str(
                 type(piece)
@@ -428,15 +428,23 @@ class Board:  # Class for any boards being created
 
         menu.mainloop(screen)
 
-    def moveEnPassant(self, startpos, enpassantpos):
+    def moveEnPassant(self, startpos, enpassantpos, board):
         start2, start1 = startpos
         enp1, enp2 = enpassantpos
+        
 
-        self.board[enp1][enp2] = None  # Kills the EnPassant Pawn
-        self.board[enp1 - 1][enp2] = self.board[start1][
-            start2]  # Moves the correct piece to the correct location
-        self.board[start1][start2] = None  # Changes previous square to nothing
-        self.board[enp1 - 1][enp2].moveCount += 1  # Adds one to the move count
+        if board[start1][start2].team == "white":
+            board[enp1][enp2] = None  # Kills the EnPassant Pawn
+            board[enp1 - 1][enp2] = board[start1][
+                start2]  # Moves the correct piece to the correct location
+            board[start1][start2] = None  # Changes previous square to nothing
+            board[enp1 - 1][enp2].moveCount += 1  # Adds one to the move count
+        else:
+            board[enp1][enp2] = None  # Kills the EnPassant Pawn
+            board[enp1 + 1][enp2] = board[start1][
+                start2]  # Moves the correct piece to the correct location
+            board[start1][start2] = None  # Changes previous square to nothing
+            board[enp1 + 1][enp2].moveCount += 1  # Adds one to the move count 
 
     def enPassantCheck(self):
         if self.lastPawnJump is not None:  # Checker to see if en passant is still viable
@@ -447,58 +455,33 @@ class Board:  # Class for any boards being created
                 self.lastPawnJump = None
 
     def kingTracker(self):
-
-        for z in range(
-                -1, 2
-        ):  # Starts from a negative number that makes it so I can build a 1x1 grid around the piece
-            for q in range(-1, 2):
-                if -1 < self.bKing[0] + z < 8:
-                    if -1 < self.bKing[1] + q < 8:
-                        if str(type(
-                                self.board[z][q])) == "<class 'pieces.King'>":
-                            self.bKing = (z, q)
-
-        for z in range(
-                -1, 2
-        ):  # Starts from a negative number that makes it so I can build a 1x1 grid around the piece
-            for q in range(-1, 2):
-                if -1 < self.wKing[0] + z < 8:
-                    if -1 < self.wKing[1] + q < 8:
-                        if str(type(
-                                self.board[z][q])) == "<class 'pieces.King'>":
-                            self.wKing = (z, q)
+        self.bKing = bK1.pos
+        self.wKing = wK1.pos
 
     def checkChecker(self, board):
-        flag = False
 
         if self.turn % 2 == 0:
-            wlegalAttacks = board[self.wKing[0]][self.wKing[1]].legalAttacks(
+            wlegalAttacks = board[wK1.y][wK1.x].legalAttacks(
                 board)
+            print(wlegalAttacks, "Legal Attackers on King")
             for pieces in wlegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
-                    if pos == self.wKing:
-                        flag = True
+                    if pos == wK1.pos:
                         return True
-                        break
-                if flag == True:
-                    break
-                else:
-                    return False
+            return False
 
         else:
-            blegalAttacks = board[self.bKing[0]][self.bKing[1]].legalAttacks(
+            blegalAttacks = board[bK1.y][bK1.x].legalAttacks(
                 board)
+            print(blegalAttacks, "Legal attackers on black king")
             for pieces in blegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
-                    if pos == self.bKing:
-                        flag = True
-                        break
-                if flag == True:
-                    break
-                else:
-                    flag = False
+                    if pos == bK1.pos:
+                        return True
+            else:
+                return False
 
     def posMoveCheckChecker(self, piece, posmove):
         copy = self.board
@@ -530,9 +513,10 @@ class Board:  # Class for any boards being created
                     x, y = self.locatesquare(
                         pos
                     )  # Saves the coordinates of the square the mouse selected
-                    print(x, y)  # Testing Purposes
+                    # print(x, y)  # Testing Purposes
 
                     if not picked:
+                        print(self.check, "Check Status")
                         if self.board[y][x] is not None:
                             if self.turn % 2 == 0 and self.board[y][
                                     x].team == "white":  # Checks if its the correct turn
@@ -584,10 +568,11 @@ class Board:  # Class for any boards being created
                                     x].killable:  # This is for when a piece occupies the space
                                 self.move(
                                     selected,
-                                    (y, x))  # Moves the piece accordingly
+                                    (y, x), self.board)  # Moves the piece accordingly
                                 self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                 self.enPassantCheck()
                                 self.kingTracker()
+                                print(self.checkChecker(self.board), "Result of Checker")
                                 self.check = self.checkChecker(self.board)
                                 self.resetgrid()
                                 self.checkPawn()
@@ -602,11 +587,10 @@ class Board:  # Class for any boards being created
                                     x] == 'x':  # This is for when its an empty space
                                 if self.lastPawnJump != None:
                                     if x != selected[0]:
-                                        if str(type(selected)
-                                               ) == "<class 'pieces.Pawn'>":
-                                            self.moveEnPassant(
-                                                selected, self.lastPawnJump
-                                            )  # Runs en passant if check completes.
+                                        if isinstance(self.board[selected[1]][selected[0]], Pawn):
+                                            self.moveEnPassant(selected, self.lastPawnJump, self.board)
+                                                
+                                            # Runs en passant if check completes.
                                     else:
                                         self.move(
                                             selected, (y, x), self.board
@@ -627,3 +611,6 @@ class Board:  # Class for any boards being created
                                 picked = False
 
             self.refresh(grid)
+
+
+b = Board()

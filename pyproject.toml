@@ -8,6 +8,7 @@ authors = ["Replit user <<>>"]
 python = "^3.10"
 pygame-menu = "^4.3.7"
 board = "^1.0"
+cl-chess = "^1.2.7"
 
 [tool.poetry.dev-dependencies]
 
