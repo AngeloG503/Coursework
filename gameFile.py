@@ -1,5 +1,6 @@
 import pygame
 import pygame_menu
+import copy
 from pieces import Pawn, King, Queen, Bishop, Horse, Rook
 
 wP1, wP2, wP3, wP4, wP5, wP6, wP7, wP8 = Pawn(
@@ -107,9 +108,8 @@ class Board:  # Class for any boards being created
         self.promotion = False  # Check if a pawn can be promoted
         self.lastPawnJump = None  # Checks for en passant possibility
         self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
-        self.wKing = (7, 4)
-        self.bKing = (0, 4)
         self.check = False
+        self.attackers = []
 
         for x in range(
                 8
@@ -119,6 +119,12 @@ class Board:  # Class for any boards being created
 
         self.board[0] = startingPosBlack
         self.board[7] = startingPosWhite
+
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] != None:
+                    self.board[i][j].x = j
+                    self.board[i][j].y = i
 
     def printboard(self):  # For testing purposes
         for x in range(8):
@@ -281,17 +287,20 @@ class Board:  # Class for any boards being created
                     start2]  # Changes the end square to contain the piece
                 board[start1][
                     start2] = None  # Changes previous square to nothing
+                board[end1][end2].x, board[end1][end2].y = end2, end1
                 board[end1][end2].moveCount += 1  # Adds one to the move count
             else:  # Normal move without storing if it wasn't a jump
                 board[end1][end2] = board[start1][
                     start2]  # Changes the end square to contain the piece
                 board[start1][
                     start2] = None  # Changes previous square to nothing
+                board[end1][end2].x, board[end1][end2].y = end2, end1
                 board[end1][end2].moveCount += 1  # Adds one to the move count
         else:
             board[end1][end2] = board[start1][
                 start2]  # Changes the end square to contain the piece
             board[start1][start2] = None  # Changes previous square to nothing
+            board[end1][end2].x, board[end1][end2].y = end2, end1
             board[end1][end2].moveCount += 1  # Adds one to the move count
         # print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
 
@@ -455,11 +464,11 @@ class Board:  # Class for any boards being created
                 self.lastPawnJump = None
 
     def kingTracker(self):
-        self.bKing = bK1.pos
-        self.wKing = wK1.pos
+        return (bK1.y, bK1.x), (wK1.y, wK1.x)
 
     def checkChecker(self, board):
-
+        print(bK1.y, bK1.x, wK1.y, wK1.x, "BKing Pos and WKing Pos")
+        check = False
         if self.turn % 2 == 0:
             wlegalAttacks = board[wK1.y][wK1.x].legalAttacks(
                 board)
@@ -467,9 +476,14 @@ class Board:  # Class for any boards being created
             for pieces in wlegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
-                    if pos == wK1.pos:
-                        return True
-            return False
+                    if pos == (wK1.y, wK1.x):
+                        self.attackers.append(board[pos[0]][pos[1]])
+                        check = True
+            if check:
+              return True
+            else:
+              self.attackers = []
+              return False
 
         else:
             blegalAttacks = board[bK1.y][bK1.x].legalAttacks(
@@ -478,18 +492,127 @@ class Board:  # Class for any boards being created
             for pieces in blegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
-                    if pos == bK1.pos:
-                        return True
+                    if pos == (bK1.y, bK1.x):
+                        self.attackers.append(board[pos[0]][pos[1]])
+                        check = True
+            if check:
+              return True
             else:
-                return False
+              self.attackers = []
+              return False
 
-    def posMoveCheckChecker(self, piece, posmove):
-        copy = self.board
-        self.move((piece.x, piece.y), posmove, copy)
-        if self.checkChecker(copy) == False:
-            return True
-        elif self.checkChecker(copy) == True:
-            return False
+    def getPath(self, start, end, piece):
+      met = False
+      path = []
+      if isinstance(piece) == Rook:
+          while met == False:
+            if start[0] == end[0]:
+                if start[1] > end[1]:
+                    start[1] -= 1
+                    path.append(start)
+                elif start[1] < end[1]:
+                    start[1] += 1
+                    path.append(start)
+                else:
+                    met = True
+            elif start[1] == end[1]:
+                if start[0] > end[0]:
+                    start[0] -= 1
+                    path.append(start)
+                elif start[0] < end[0]:
+                    start[0] += 1
+                    path.append(start)
+                else:
+                    met = True
+            else:
+                met = True
+          if len(path) > 0:
+            return path
+          else:
+            pass  
+      elif isinstance(piece) == Bishop:
+          while met == False:
+              if abs(start[0] - end[0]) == abs(start[1] - end[1]):
+                  if start[0] == end[0]:
+                      met = True
+                  elif start[0] - end[0] < 0:
+                      if start[1] - end[1] < 0:
+                          start[0] += 1
+                          start[1] += 1
+                          path.append(start)
+                      elif start[1] - end[1] > 0:
+                          start[0] += 1
+                          start[1] -= 1
+                          path.append(start)
+                  elif start[0] - end[0] > 0:
+                      if start[1] - end[1] < 0:
+                          start[0] += 1
+                          start[1] += 1
+                          path.append(start)
+                      elif start[1] - end[1] > 0:
+                          start[0] += 1
+                          start[1] -= 1
+                          path.append(start)
+              else:
+                met = True
+          if len(path) > 0:
+            return path
+          else:
+            pass 
+                
+      elif isinstance(piece) == Queen:
+          while met == False:
+            if abs(start[0] - end[0]) == abs(start[1] - end[1]):
+                  if start[0] == end[0]:
+                      met = True
+                  elif start[0] - end[0] < 0:
+                      if start[1] - end[1] < 0:
+                          start[0] += 1
+                          start[1] += 1
+                          path.append(start)
+                      elif start[1] - end[1] > 0:
+                          start[0] += 1
+                          start[1] -= 1
+                          path.append(start)
+                  elif start[0] - end[0] > 0:
+                      if start[1] - end[1] < 0:
+                          start[0] += 1
+                          start[1] += 1
+                          path.append(start)
+                      elif start[1] - end[1] > 0:
+                          start[0] += 1
+                          start[1] -= 1
+                          path.append(start)
+            elif start[0] == end[0]:
+                if start[1] > end[1]:
+                    start[1] -= 1
+                    path.append(start)
+                elif start[1] < end[1]:
+                    start[1] += 1
+                    path.append(start)
+                else:
+                    met = True
+            elif start[1] == end[1]:
+                if start[0] > end[0]:
+                    start[0] -= 1
+                    path.append(start)
+                elif start[0] < end[0]:
+                    start[0] += 1
+                    path.append(start)
+                else:
+                    met = True
+            else:
+                met = True
+          if len(path) > 0:
+            return path
+          else:
+            pass  
+
+        
+  
+    def CheckmateChecker(self, piece, posmove):
+        copyboard = self.board
+        stop = []
 
     def openg(self):
         pygame.init()  # Initialise pygame
