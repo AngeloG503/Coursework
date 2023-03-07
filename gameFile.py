@@ -709,7 +709,7 @@ class Board:  # Class for any boards being created
                             if self.board[y][
                                     x] == 'x':  # This is for when its an empty space
                                 if self.lastPawnJump != None:
-                                    if x != selected[0]:
+                                    if x != selected[0] and y == selected[1]:
                                         if isinstance(self.board[selected[1]][selected[0]], Pawn):
                                             self.moveEnPassant(selected, self.lastPawnJump, self.board)
                                                 
