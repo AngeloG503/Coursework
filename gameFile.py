@@ -1,6 +1,5 @@
 import pygame
 import pygame_menu
-import copy
 from pieces import Pawn, King, Queen, Bishop, Horse, Rook
 
 wP1, wP2, wP3, wP4, wP5, wP6, wP7, wP8 = Pawn(
@@ -71,11 +70,46 @@ pawns = [
     bP5,
     bP6,
     bP7,
-    bP8,
+    bP8
 ]
-rooks = [bR1, bR2, wR1, wR2]
-bishops = [bB1, bB2, wB1, wB2]
-horses = [bH1, bH2, wH1, wH2]
+
+whiteTeam = {
+    wP1:0, 0:wP1,
+    wP2:1, 1:wP2,
+    wP3:2, 2:wP3,
+    wP4:3, 3:wP4,
+    wP5:4, 4:wP4,
+    wP6:5, 5:wP6,
+    wP7:6, 6:wP7,
+    wP8:7, 7:wP7,
+    wR1:8, 8:wR1,
+    wH1:9, 9:wH1,
+    wB1:10, 10:wB1,
+    wQ1:11, 11:wQ1,
+    wK1:12, 12:wK1,
+    wB2:13, 13:wB2,
+    wH2:14, 14:wH2,
+    wR2:15, 15:wR2
+            }
+
+blackTeam = {
+    bP1:0, 0:bP1,
+    bP2:1, 1:bP2,
+    bP3:2, 2:bP3,
+    bP4:3, 3:bP4,
+    bP5:4, 4:bP4,
+    bP6:5, 5:bP6,
+    bP7:6, 6:bP7,
+    bP8:7, 7:bP7,
+    bR1:8, 8:bR1,
+    bH1:9, 9:bH1,
+    bB1:10, 10:bB1,
+    bQ1:11, 11:bQ1,
+    bK1:12, 12:bK1,
+    bB2:13, 13:bB2,
+    bH2:14, 14:bH2,
+    bR2:15, 15:bR2
+            }
 
 startingPosBlack = [bR1, bH1, bB1, bQ1, bK1, bB2, bH2, bR2]
 startingPosWhite = [wR1, wH1, wB1, wQ1, wK1, wB2, wH2, wR2]
@@ -184,10 +218,8 @@ class Board:  # Class for any boards being created
         columns = x // width
         return int(rows), int(columns)
 
-    def posmovesSel(
-            self, piece):  # Takes selected piece and marks all possible moves.
-        possible = piece.possible(self.board)
-        print(possible, "Possible Moves")
+    def posMoves(self, piece, board):
+        possible = piece.possible(board)
 
         if str(
                 type(piece)
@@ -216,46 +248,29 @@ class Board:  # Class for any boards being created
                                 (self.lastPawnJump[0] + 1,
                                  self.lastPawnJump[1]))  # Appends if it is
 
+        return possible
+
+    def posmovesApply(
+            self, piece, moves, board):  # Takes selected piece and marks all possible moves.
+        possible = moves
+
         if piece.team == "white":
-            if self.check == True:
                 for pos in possible:  # Loops through the array that holds all possible moves
-                    if self.board[pos[0]][
-                            pos[1]] is None and self.posMoveCheckChecker(
-                                piece, pos) == True:
-                        self.board[pos[0]][pos[
-                            1]] = 'x'  # The symbol used to mark an empty space as a possible move
-                    elif self.posMoveCheckChecker(piece, pos) == True:
-                        self.board[pos[0]][pos[
-                            1]].killable = True  # Marking a killable piece as such
-            else:
-                for pos in possible:  # Loops through the array that holds all possible moves
-                    if self.board[pos[0]][pos[1]] is None:
-                        self.board[pos[0]][pos[
+                    if board[pos[0]][pos[1]] is None:
+                        board[pos[0]][pos[
                             1]] = 'x'  # The symbol used to mark an empty space as a possible move
                     else:
-                        self.board[pos[0]][pos[
+                        board[pos[0]][pos[
                             1]].killable = True  # Marking a killable piece as such
         elif piece.team == "black":
-            if self.check == True:
                 for pos in possible:  # Loops through the array that holds all possible moves
-                    if self.board[pos[0]][
-                            pos[1]] is None and self.posMoveCheckChecker(
-                                piece, pos) == True:
-                        self.board[pos[0]][pos[
-                            1]] = 'x'  # The symbol used to mark an empty space as a possible move
-                    elif self.posMoveCheckChecker(piece, pos) == True:
-                        self.board[pos[0]][pos[
-                            1]].killable = True  # Marking a killable piece as such
-            else:
-                for pos in possible:  # Loops through the array that holds all possible moves
-                    if self.board[pos[0]][pos[1]] is None:
-                        self.board[pos[0]][pos[
+                    if board[pos[0]][pos[1]] is None:
+                        board[pos[0]][pos[
                             1]] = 'x'  # The symbol used to mark an empty space as a possible move
                     else:
-                        self.board[pos[0]][pos[
+                        board[pos[0]][pos[
                             1]].killable = True  # Marking a killable piece as such
 
-        return possible
 
     def visible(self, moves):
         for pos in moves:  # Loops through the possible moves array and changes the colour of each square
@@ -290,6 +305,10 @@ class Board:  # Class for any boards being created
                 board[end1][end2].x, board[end1][end2].y = end2, end1
                 board[end1][end2].moveCount += 1  # Adds one to the move count
             else:  # Normal move without storing if it wasn't a jump
+                try:
+                  board[end1][end2].alive = False
+                except:
+                  pass
                 board[end1][end2] = board[start1][
                     start2]  # Changes the end square to contain the piece
                 board[start1][
@@ -297,6 +316,10 @@ class Board:  # Class for any boards being created
                 board[end1][end2].x, board[end1][end2].y = end2, end1
                 board[end1][end2].moveCount += 1  # Adds one to the move count
         else:
+            try:
+                board[end1][end2].alive = False
+            except:
+                pass
             board[end1][end2] = board[start1][
                 start2]  # Changes the end square to contain the piece
             board[start1][start2] = None  # Changes previous square to nothing
@@ -305,8 +328,7 @@ class Board:  # Class for any boards being created
         # print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
 
     def resetgrid(
-        self
-    ):  # Loops through the board and essentially just makes sure the colour of each square is default
+        self, board):  # Loops through the board and essentially just makes sure the colour of each square is default
         for z in range(8):
             for q in range(8):
                 if (z + q) % 2 == 0:
@@ -314,13 +336,13 @@ class Board:  # Class for any boards being created
                 else:
                     self.grid[z][q].colour = dbrown
 
-                if self.board[z][
+                if board[z][
                         q] == 'x':  # These if statements check for possible moves and removes them.
-                    self.board[z][q] = None
-                elif self.board[z][q] == None:
+                    board[z][q] = None
+                elif board[z][q] == None:
                     pass
                 else:
-                    self.board[z][q].killable = False
+                    board[z][q].killable = False
 
     def checkPawn(self):
         pos = (None, None)
@@ -443,12 +465,14 @@ class Board:  # Class for any boards being created
         
 
         if board[start1][start2].team == "white":
+            board[enp1][enp2].alive = False
             board[enp1][enp2] = None  # Kills the EnPassant Pawn
             board[enp1 - 1][enp2] = board[start1][
                 start2]  # Moves the correct piece to the correct location
             board[start1][start2] = None  # Changes previous square to nothing
             board[enp1 - 1][enp2].moveCount += 1  # Adds one to the move count
         else:
+            board[enp1][enp2].alive = False
             board[enp1][enp2] = None  # Kills the EnPassant Pawn
             board[enp1 + 1][enp2] = board[start1][
                 start2]  # Moves the correct piece to the correct location
@@ -610,10 +634,45 @@ class Board:  # Class for any boards being created
 
         
   
-    def CheckmateChecker(self, piece, posmove):
-        copyboard = self.board
-        stop = []
+    def checkmateChecker(self):
+        copyboard = None
+        allposmoves = [[] for _ in range(16)]
+        if self.turn % 2 == 0:
+            for i in range(16):
+                if whiteTeam[i].alive:
+                    posmoves = self.posMoves(whiteTeam[i], copyboard)
+                    for move in posmoves:
+                        copyboard = self.board 
+                        self.resetgrid(copyboard)
+                        self.posmovesApply(whiteTeam[i], copyboard)
+                        self.move((whiteTeam[i].y, whiteTeam[i].x), move, copyboard)
+                        if self.checkChecker(copyboard):
+                            pass
+                        else:
+                            allposmoves[i].append(move)
+                            checkmate = False
+        else:
+            for i in range(16):
+                  if blackTeam[i].alive:
+                      posmoves = self.posMoves(blackTeam[i], self.board)
+                      for move in posmoves:
+                          copyboard = self.board
+                          for x in range(8):
+                            print(self.board[x], "Copied Board")
+                          self.resetgrid(copyboard)
+                          self.posmovesApply(blackTeam[i], posmoves, copyboard)
+                          self.move((blackTeam[i].y, blackTeam[i].x), move, copyboard)
+                          if self.checkChecker(copyboard):
+                              pass
+                          else:
+                              allposmoves[i].append(move)
+                              checkmate = False
 
+        if checkmate:
+            self.endScreen()
+        else:
+            return allposmoves
+                        
     def openg(self):
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
@@ -638,101 +697,198 @@ class Board:  # Class for any boards being created
                     )  # Saves the coordinates of the square the mouse selected
                     # print(x, y)  # Testing Purposes
 
-                    if not picked:
-                        print(self.check, "Check Status")
-                        if self.board[y][x] is not None:
-                            if self.turn % 2 == 0 and self.board[y][
-                                    x].team == "white":  # Checks if its the correct turn
-                                try:
-                                    self.grid[y][
-                                        x].colour = lblue  # Visually represents selected square
-                                    selected = (
-                                        x, y
-                                    )  # Changes selected square to this
-                                    picked = True  # Updates picked value
-                                    possible = self.posmovesSel(
-                                        self.board[y][x]
-                                    )  # Saves possible moves to an array
-                                    self.visible(
-                                        possible
-                                    )  # Makes the pieces visible for possible moves
-
-                                finally:
-                                    pass
-
-                            elif self.turn % 2 == 1 and self.board[y][
-                                    x].team == "black":  # Checks if its the correct turn
-                                try:
-                                    self.grid[y][
-                                        x].colour = lblue  # Visually represents selected square
-                                    selected = (
-                                        x, y
-                                    )  # Changes selected square to this
-                                    picked = True  # Updates picked value
-                                    possible = self.posmovesSel(
-                                        self.board[y][x]
-                                    )  # Saves possible moves to an array
-                                    self.visible(
-                                        possible
-                                    )  # Makes the pieces visible for possible moves
-
-                                finally:
-                                    pass
-
-                            else:
-                                print(
-                                    "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
-                                )
-
-                    elif self.board[y][
-                            x] is not None:  # Checks not none as all possible moves are marked.
-                        try:
-                            if self.board[y][
-                                    x].killable:  # This is for when a piece occupies the space
-                                self.move(
-                                    selected,
-                                    (y, x), self.board)  # Moves the piece accordingly
-                                self.turn += 1  # Adds one to the turn so it can check who's turn it is
-                                self.enPassantCheck()
-                                self.kingTracker()
-                                print(self.checkChecker(self.board), "Result of Checker")
-                                self.check = self.checkChecker(self.board)
-                                self.resetgrid()
-                                self.checkPawn()
-                                picked = False
-
-                            else:
-                                self.resetgrid()
-                                picked = False
-
-                        except:
-                            if self.board[y][
-                                    x] == 'x':  # This is for when its an empty space
-                                if self.lastPawnJump != None:
-                                    if x != selected[0] and y == selected[1]:
-                                        if isinstance(self.board[selected[1]][selected[0]], Pawn):
-                                            self.moveEnPassant(selected, self.lastPawnJump, self.board)
-                                                
-                                            # Runs en passant if check completes.
-                                    else:
-                                        self.move(
-                                            selected, (y, x), self.board
-                                        )  # Moves the piece accordingly
+                    if not self.check:  
+                        if not picked:
+                            print(self.check, "Check Status")
+                            if self.board[y][x] is not None:
+                                if self.turn % 2 == 0 and self.board[y][
+                                        x].team == "white":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        possible = self.posMoves(
+                                            self.board[y][x], self.board)
+                                        self.posmovesApply(self.board[y][x], possible, self.board)
+                                          # Saves possible moves to an array
+                                        self.visible(
+                                            possible
+                                        )  # Makes the pieces visible for possible moves
+    
+                                    finally:
+                                        pass
+    
+                                elif self.turn % 2 == 1 and self.board[y][
+                                        x].team == "black":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        possible = self.posMoves(
+                                            self.board[y][x], self.board)
+                                        self.posmovesApply(self.board[y][x], possible, self.board)
+                                          # Saves possible moves to an array
+                                        self.visible(
+                                            possible
+                                        )  # Makes the pieces visible for possible moves
+    
+                                    finally:
+                                        pass
+    
                                 else:
-                                    self.move(selected, (y, x), self.board
-                                              )  # Moves the piece accordingly
-                                self.turn += 1  # Adds one to the turn so it can check who's turn it is
-                                self.enPassantCheck()
-                                self.kingTracker()
-                                self.check = self.checkChecker(self.board)
-                                self.resetgrid()
-                                self.checkPawn()
-                                picked = False
+                                    print(
+                                        "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
+                                    )
+    
+                        elif self.board[y][
+                                x] is not None:  # Checks not none as all possible moves are marked.
+                            try:
+                                if self.board[y][
+                                        x].killable:  # This is for when a piece occupies the space
+                                    self.move(
+                                        selected,
+                                        (y, x), self.board)  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    print(self.checkChecker(self.board), "Result of Checker")
+                                    self.check = self.checkChecker(self.board)
+                                    self.resetgrid()
+                                    self.checkPawn()
+                                    picked = False
+    
+                                else:
+                                    self.resetgrid()
+                                    picked = False
+    
+                            except:
+                                if self.board[y][
+                                        x] == 'x':  # This is for when its an empty space
+                                    if self.lastPawnJump != None:
+                                        if x != selected[0] and y == selected[1]:
+                                            if isinstance(self.board[selected[1]][selected[0]], Pawn):
+                                                self.moveEnPassant(selected, self.lastPawnJump, self.board)
+                                                    
+                                                # Runs en passant if check completes.
+                                        else:
+                                            self.move(
+                                                selected, (y, x), self.board
+                                            )  # Moves the piece accordingly
+                                    else:
+                                        self.move(selected, (y, x), self.board
+                                                  )  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board)
+                                    self.resetgrid(self.board)
+                                    self.checkPawn()
+                                    picked = False
+    
+                                else:
+                                    self.resetgrid(self.board)
+                                    picked = False
+                    if self.check:
+                        if not picked:
+                            if self.board[y][x] is not None:
+                                if self.turn % 2 == 0 and self.board[y][
+                                        x].team == "white":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        allpossible = self.checkmateChecker()
+                                        # Saves possible moves to an array
+                                        self.visible(
+                                            allpossible[whiteTeam[self.board[y][x]]]
+                                        )  # Makes the pieces visible for possible moves
+    
+                                    finally:
+                                        pass
+    
+                                elif self.turn % 2 == 1 and self.board[y][
+                                        x].team == "black":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        allpossible = self.checkmateChecker()
+                                      # Saves possible moves to an array
+                                        self.visible(
+                                            allpossible[whiteTeam[self.board[y][x]]]
+                                        )  # Makes the pieces visible for possible moves
+    
+                                    finally:
+                                        pass
+    
+                                else:
+                                    print(
+                                        "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
+                                    )
+    
+                        elif self.board[y][
+                                x] is not None:  # Checks not none as all possible moves are marked.
+                            try:
+                                if self.board[y][
+                                        x].killable:  # This is for when a piece occupies the space
+                                    self.move(
+                                        selected,
+                                        (y, x), self.board)  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    print(self.checkChecker(self.board), "Result of Checker")
+                                    self.check = self.checkChecker(self.board)
+                                    self.resetgrid(self.board)
+                                    self.checkPawn()
+                                    picked = False
+    
+                                else:
+                                    self.resetgrid(self.board)
+                                    picked = False
+    
+                            except:
+                                if self.board[y][
+                                        x] == 'x':  # This is for when its an empty space
+                                    if self.lastPawnJump != None:
+                                        if x != selected[0] and y == selected[1]:
+                                            if isinstance(self.board[selected[1]][selected[0]], Pawn):
+                                                self.moveEnPassant(selected, self.lastPawnJump, self.board)
+                                                    
+                                                # Runs en passant if check completes.
+                                        else:
+                                            self.move(
+                                                selected, (y, x), self.board
+                                            )  # Moves the piece accordingly
+                                    else:
+                                        self.move(selected, (y, x), self.board
+                                                  )  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board)
+                                    self.resetgrid()
+                                    self.checkPawn()
+                                    picked = False
+    
+                                else:
+                                    self.resetgrid()
+                                    picked = False
 
-                            else:
-                                self.resetgrid()
-                                picked = False
 
+                  
             self.refresh(grid)
 
 

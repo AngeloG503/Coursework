@@ -11,6 +11,7 @@ class Piece:  # Base piece class, used for inheritance
         self.x, self.y = 0, 0  # In terms of the grid array
         self.pos = (self.y, self.x)
         self.rect = pygame.Rect(rect)  # For drawing purposes in pygame
+        self.alive = True
 
     def onboard(self, x, y):  # Checks whether position is on the board
         if -1 < x < 8:
