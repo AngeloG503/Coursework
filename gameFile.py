@@ -1,57 +1,58 @@
 import pygame
 import pygame_menu
+import copy
 from pieces import Pawn, King, Queen, Bishop, Horse, Rook
 
 wP1, wP2, wP3, wP4, wP5, wP6, wP7, wP8 = Pawn(
     "white", "wP.png",
     (9, 600, 100, 100)), Pawn("white", "wP.png", (109, 600, 100, 100)), Pawn(
-        "white",
-        # Creates white pawns
-        "wP.png",
-        (209, 600, 100, 100)), Pawn(
-            "white", "wP.png", (309, 600, 100, 100)), Pawn(
-                "white", "wP.png", (409, 600, 100, 100)), Pawn(
-                    "white", "wP.png", (509, 600, 100, 100)), Pawn(
-                        "white", "wP.png",
-                        (609, 600, 100, 100)), Pawn("white", "wP.png",
-                                                    (709, 600, 100, 100))
+    "white",
+    # Creates white pawns
+    "wP.png",
+    (209, 600, 100, 100)), Pawn(
+    "white", "wP.png", (309, 600, 100, 100)), Pawn(
+    "white", "wP.png", (409, 600, 100, 100)), Pawn(
+    "white", "wP.png", (509, 600, 100, 100)), Pawn(
+    "white", "wP.png",
+    (609, 600, 100, 100)), Pawn("white", "wP.png",
+                                (709, 600, 100, 100))
 
 bP1, bP2, bP3, bP4, bP5, bP6, bP7, bP8 = Pawn(
     "black", "bP.png",
     (9, 100, 100, 100)), Pawn("black", "bP.png", (109, 100, 100, 100)), Pawn(
-        "black",
-        # Creates black pawns
-        "bP.png",
-        (209, 100, 100, 100)), Pawn(
-            "black", "bP.png", (309, 100, 100, 100)), Pawn(
-                "black", "bP.png", (409, 100, 100, 100)), Pawn(
-                    "black", "bP.png", (509, 100, 100, 100)), Pawn(
-                        "black", "bP.png",
-                        (609, 100, 100, 100)), Pawn("black", "bP.png",
-                                                    (709, 100, 100, 100))
+    "black",
+    # Creates black pawns
+    "bP.png",
+    (209, 100, 100, 100)), Pawn(
+    "black", "bP.png", (309, 100, 100, 100)), Pawn(
+    "black", "bP.png", (409, 100, 100, 100)), Pawn(
+    "black", "bP.png", (509, 100, 100, 100)), Pawn(
+    "black", "bP.png",
+    (609, 100, 100, 100)), Pawn("black", "bP.png",
+                                (709, 100, 100, 100))
 
 bK1, wK1, bQ1, wQ1 = King("black", "bK.png", (409, 5, 0, 0)), King(
     "white", "wK.png", (409, 705, 0, 0)), Queen("black", "bQ.png",
                                                 (309, 5, 0, 0)), Queen(
-                                                    "white",
-                                                    # Creates kings and queens
-                                                    "wQ.png",
-                                                    (309, 705, 0, 0))
+    "white",
+    # Creates kings and queens
+    "wQ.png",
+    (309, 705, 0, 0))
 
 bR1, bR2, wR1, wR2 = Rook("black", "bR.png", (8, 7, 100, 100)), Rook(
     "black", "bR.png",
     (708, 7, 100, 100)), Rook("white", "wR.png", (8, 705, 100, 100)), Rook(
-        "white", "wR.png", (708, 705, 100, 100))  # Creates rooks
+    "white", "wR.png", (708, 705, 100, 100))  # Creates rooks
 
 bB1, bB2, wB1, wB2 = Bishop("black", "bB.png", (207, 5, 0, 0)), Bishop(
     "black", "bB.png",
     (507, 5, 0, 0)), Bishop("white", "wB.png", (207, 705, 0, 0)), Bishop(
-        "white", "wB.png", (507, 705, 0, 0))  # Creates bishops
+    "white", "wB.png", (507, 705, 0, 0))  # Creates bishops
 
 bH1, bH2, wH1, wH2 = Horse("black", "bH.png", (109, 5, 0, 0)), Horse(
     "black", "bH.png",
     (609, 5, 0, 0)), Horse("white", "wH.png", (109, 705, 0, 100)), Horse(
-        "white", "wH.png", (609, 705, 0, 0)),  # Creates horses
+    "white", "wH.png", (609, 705, 0, 0)),  # Creates horses
 
 #  Sorting pieces into arrays
 pawns = [
@@ -74,42 +75,42 @@ pawns = [
 ]
 
 whiteTeam = {
-    wP1:0, 0:wP1,
-    wP2:1, 1:wP2,
-    wP3:2, 2:wP3,
-    wP4:3, 3:wP4,
-    wP5:4, 4:wP4,
-    wP6:5, 5:wP6,
-    wP7:6, 6:wP7,
-    wP8:7, 7:wP7,
-    wR1:8, 8:wR1,
-    wH1:9, 9:wH1,
-    wB1:10, 10:wB1,
-    wQ1:11, 11:wQ1,
-    wK1:12, 12:wK1,
-    wB2:13, 13:wB2,
-    wH2:14, 14:wH2,
-    wR2:15, 15:wR2
-            }
+    wP1: 0, 0: wP1,
+    wP2: 1, 1: wP2,
+    wP3: 2, 2: wP3,
+    wP4: 3, 3: wP4,
+    wP5: 4, 4: wP4,
+    wP6: 5, 5: wP6,
+    wP7: 6, 6: wP7,
+    wP8: 7, 7: wP7,
+    wR1: 8, 8: wR1,
+    wH1: 9, 9: wH1,
+    wB1: 10, 10: wB1,
+    wQ1: 11, 11: wQ1,
+    wK1: 12, 12: wK1,
+    wB2: 13, 13: wB2,
+    wH2: 14, 14: wH2,
+    wR2: 15, 15: wR2
+}
 
 blackTeam = {
-    bP1:0, 0:bP1,
-    bP2:1, 1:bP2,
-    bP3:2, 2:bP3,
-    bP4:3, 3:bP4,
-    bP5:4, 4:bP4,
-    bP6:5, 5:bP6,
-    bP7:6, 6:bP7,
-    bP8:7, 7:bP7,
-    bR1:8, 8:bR1,
-    bH1:9, 9:bH1,
-    bB1:10, 10:bB1,
-    bQ1:11, 11:bQ1,
-    bK1:12, 12:bK1,
-    bB2:13, 13:bB2,
-    bH2:14, 14:bH2,
-    bR2:15, 15:bR2
-            }
+    bP1: 0, 0: bP1,
+    bP2: 1, 1: bP2,
+    bP3: 2, 2: bP3,
+    bP4: 3, 3: bP4,
+    bP5: 4, 4: bP4,
+    bP6: 5, 5: bP6,
+    bP7: 6, 6: bP7,
+    bP8: 7, 7: bP7,
+    bR1: 8, 8: bR1,
+    bH1: 9, 9: bH1,
+    bB1: 10, 10: bB1,
+    bQ1: 11, 11: bQ1,
+    bK1: 12, 12: bK1,
+    bB2: 13, 13: bB2,
+    bH2: 14, 14: bH2,
+    bR2: 15, 15: bR2
+}
 
 startingPosBlack = [bR1, bH1, bB1, bQ1, bK1, bB2, bH2, bR2]
 startingPosWhite = [wR1, wH1, wB1, wQ1, wK1, wB2, wH2, wR2]
@@ -196,11 +197,11 @@ class Board:  # Class for any boards being created
 
     def setup(self, pos):
         if self.board[pos.row][pos.column] is not None and self.board[pos.row][
-                pos.column] != "x":  # Checks whether
+            pos.column] != "x":  # Checks whether
             # there is a piece in the square or not
             self.board[pos.row][
                 pos.
-                column].x = pos.column  # Changes the coordinates based on the piece
+                    column].x = pos.column  # Changes the coordinates based on the piece
             self.board[pos.row][pos.column].y = pos.row
             self.board[pos.row][pos.column].rect = pygame.Rect(
                 self.board[pos.row][pos.column].x * 100 + 9,
@@ -227,7 +228,7 @@ class Board:  # Class for any boards being created
             if self.lastPawnJump is not None:  # Checks to see the chances
                 if piece.team == "white":  # Checks team
                     if piece.y == self.lastPawnJump[
-                            0]:  # Checks if the piece is killable in relation to selected piece
+                        0]:  # Checks if the piece is killable in relation to selected piece
                         if piece.x + 1 == self.lastPawnJump[1]:
                             possible.append(
                                 (self.lastPawnJump[0] - 1,
@@ -238,7 +239,7 @@ class Board:  # Class for any boards being created
                                  self.lastPawnJump[1]))  # Appends if it is
                 else:
                     if piece.y == self.lastPawnJump[
-                            0]:  # Checks if the piece is killable in relation to selected piece
+                        0]:  # Checks if the piece is killable in relation to selected piece
                         if piece.x + 1 == self.lastPawnJump[1]:
                             possible.append(
                                 (self.lastPawnJump[0] + 1,
@@ -255,27 +256,27 @@ class Board:  # Class for any boards being created
         possible = moves
 
         if piece.team == "white":
-                for pos in possible:  # Loops through the array that holds all possible moves
-                    if board[pos[0]][pos[1]] is None:
-                        board[pos[0]][pos[
-                            1]] = 'x'  # The symbol used to mark an empty space as a possible move
-                    else:
-                        board[pos[0]][pos[
-                            1]].killable = True  # Marking a killable piece as such
+            for pos in possible:  # Loops through the array that holds all possible moves
+                if board[pos[0]][pos[1]] is None:
+                    board[pos[0]][pos[
+                        1]] = 'x'  # The symbol used to mark an empty space as a possible move
+                else:
+                    board[pos[0]][pos[
+                        1]].killable = True  # Marking a killable piece as such
         elif piece.team == "black":
-                for pos in possible:  # Loops through the array that holds all possible moves
-                    if board[pos[0]][pos[1]] is None:
-                        board[pos[0]][pos[
-                            1]] = 'x'  # The symbol used to mark an empty space as a possible move
-                    else:
-                        board[pos[0]][pos[
-                            1]].killable = True  # Marking a killable piece as such
-
+            for pos in possible:  # Loops through the array that holds all possible moves
+                if board[pos[0]][pos[1]] is None:
+                    board[pos[0]][pos[
+                        1]] = 'x'  # The symbol used to mark an empty space as a possible move
+                else:
+                    board[pos[0]][pos[
+                        1]].killable = True  # Marking a killable piece as such
 
     def visible(self, moves):
-        for pos in moves:  # Loops through the possible moves array and changes the colour of each square
-            x, y = pos
-            self.grid[x][y].colour = lblue
+        if len(moves) > 0:
+            for pos in moves:  # Loops through the possible moves array and changes the colour of each square
+                x, y = pos
+                self.grid[x][y].colour = lblue
 
     def gridlines(self):
         width = 100
@@ -306,9 +307,9 @@ class Board:  # Class for any boards being created
                 board[end1][end2].moveCount += 1  # Adds one to the move count
             else:  # Normal move without storing if it wasn't a jump
                 try:
-                  board[end1][end2].alive = False
+                    board[end1][end2].alive = False
                 except:
-                  pass
+                    pass
                 board[end1][end2] = board[start1][
                     start2]  # Changes the end square to contain the piece
                 board[start1][
@@ -327,8 +328,25 @@ class Board:  # Class for any boards being created
             board[end1][end2].moveCount += 1  # Adds one to the move count
         # print("Moved. (Debugging purposes DO NOT LEAVE IN FINAL PRODUCT)")
 
+    def ghostSave(self):
+        for i in range(16):
+            blackTeam[i].temppos = blackTeam[i].x, blackTeam[i].y
+            blackTeam[i].tempCount = blackTeam[i].moveCount
+
+            whiteTeam[i].temppos = whiteTeam[i].x, whiteTeam[i].y
+            whiteTeam[i].tempCount = whiteTeam[i].moveCount
+
+    def ghostReset(self):
+        for i in range(16):
+            blackTeam[i].x, blackTeam[i].y = blackTeam[i].temppos
+            blackTeam[i].moveCount = blackTeam[i].tempCount
+
+            whiteTeam[i].x, whiteTeam[i].y = whiteTeam[i].temppos
+            whiteTeam[i].moveCount = whiteTeam[i].tempCount
+
     def resetgrid(
-        self, board):  # Loops through the board and essentially just makes sure the colour of each square is default
+            self,
+            board):  # Loops through the board and essentially just makes sure the colour of each square is default
         for z in range(8):
             for q in range(8):
                 if (z + q) % 2 == 0:
@@ -337,7 +355,7 @@ class Board:  # Class for any boards being created
                     self.grid[z][q].colour = dbrown
 
                 if board[z][
-                        q] == 'x':  # These if statements check for possible moves and removes them.
+                    q] == 'x':  # These if statements check for possible moves and removes them.
                     board[z][q] = None
                 elif board[z][q] == None:
                     pass
@@ -377,7 +395,7 @@ class Board:  # Class for any boards being created
 
             elif choice == "Rook":
                 name = Rook("white", "bR.png", self.board[y]
-                            [x].rect)  # Creates a new class for the new rook.
+                [x].rect)  # Creates a new class for the new rook.
                 name.y, name.x = y, x  # Uses old position
                 name.moveCount = self.board[y][
                     x].moveCount  # Movecount for stats sake
@@ -417,7 +435,7 @@ class Board:  # Class for any boards being created
 
             elif choice == "Rook":
                 name = Rook("white", "wR.png", self.board[y]
-                            [x].rect)  # Creates a new class for the new rook.
+                [x].rect)  # Creates a new class for the new rook.
                 name.y, name.x = y, x  # Uses old position
                 name.moveCount = self.board[y][
                     x].moveCount  # Movecount for stats sake
@@ -462,7 +480,6 @@ class Board:  # Class for any boards being created
     def moveEnPassant(self, startpos, enpassantpos, board):
         start2, start1 = startpos
         enp1, enp2 = enpassantpos
-        
 
         if board[start1][start2].team == "white":
             board[enp1][enp2].alive = False
@@ -491,12 +508,12 @@ class Board:  # Class for any boards being created
         return (bK1.y, bK1.x), (wK1.y, wK1.x)
 
     def checkChecker(self, board):
-        print(bK1.y, bK1.x, wK1.y, wK1.x, "BKing Pos and WKing Pos")
+        # print(bK1.y, bK1.x, wK1.y, wK1.x, "BKing Pos and WKing Pos")
         check = False
         if self.turn % 2 == 0:
             wlegalAttacks = board[wK1.y][wK1.x].legalAttacks(
                 board)
-            print(wlegalAttacks, "Legal Attackers on King")
+            # print(wlegalAttacks, "Legal Attackers on King")
             for pieces in wlegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
@@ -504,15 +521,15 @@ class Board:  # Class for any boards being created
                         self.attackers.append(board[pos[0]][pos[1]])
                         check = True
             if check:
-              return True
+                return True
             else:
-              self.attackers = []
-              return False
+                self.attackers = []
+                return False
 
         else:
             blegalAttacks = board[bK1.y][bK1.x].legalAttacks(
                 board)
-            print(blegalAttacks, "Legal attackers on black king")
+            # print(blegalAttacks, "Legal attackers on black king")
             for pieces in blegalAttacks:
                 temp = board[pieces[0]][pieces[1]].possible(board)
                 for pos in temp:
@@ -520,165 +537,169 @@ class Board:  # Class for any boards being created
                         self.attackers.append(board[pos[0]][pos[1]])
                         check = True
             if check:
-              return True
+                return True
             else:
-              self.attackers = []
-              return False
+                self.attackers = []
+                return False
 
     def getPath(self, start, end, piece):
-      met = False
-      path = []
-      if isinstance(piece) == Rook:
-          while met == False:
-            if start[0] == end[0]:
-                if start[1] > end[1]:
-                    start[1] -= 1
-                    path.append(start)
-                elif start[1] < end[1]:
-                    start[1] += 1
-                    path.append(start)
+        met = False
+        path = []
+        if isinstance(piece) == Rook:
+            while met == False:
+                if start[0] == end[0]:
+                    if start[1] > end[1]:
+                        start[1] -= 1
+                        path.append(start)
+                    elif start[1] < end[1]:
+                        start[1] += 1
+                        path.append(start)
+                    else:
+                        met = True
+                elif start[1] == end[1]:
+                    if start[0] > end[0]:
+                        start[0] -= 1
+                        path.append(start)
+                    elif start[0] < end[0]:
+                        start[0] += 1
+                        path.append(start)
+                    else:
+                        met = True
                 else:
                     met = True
-            elif start[1] == end[1]:
-                if start[0] > end[0]:
-                    start[0] -= 1
-                    path.append(start)
-                elif start[0] < end[0]:
-                    start[0] += 1
-                    path.append(start)
-                else:
-                    met = True
+            if len(path) > 0:
+                return path
             else:
-                met = True
-          if len(path) > 0:
-            return path
-          else:
-            pass  
-      elif isinstance(piece) == Bishop:
-          while met == False:
-              if abs(start[0] - end[0]) == abs(start[1] - end[1]):
-                  if start[0] == end[0]:
-                      met = True
-                  elif start[0] - end[0] < 0:
-                      if start[1] - end[1] < 0:
-                          start[0] += 1
-                          start[1] += 1
-                          path.append(start)
-                      elif start[1] - end[1] > 0:
-                          start[0] += 1
-                          start[1] -= 1
-                          path.append(start)
-                  elif start[0] - end[0] > 0:
-                      if start[1] - end[1] < 0:
-                          start[0] += 1
-                          start[1] += 1
-                          path.append(start)
-                      elif start[1] - end[1] > 0:
-                          start[0] += 1
-                          start[1] -= 1
-                          path.append(start)
-              else:
-                met = True
-          if len(path) > 0:
-            return path
-          else:
-            pass 
-                
-      elif isinstance(piece) == Queen:
-          while met == False:
-            if abs(start[0] - end[0]) == abs(start[1] - end[1]):
-                  if start[0] == end[0]:
-                      met = True
-                  elif start[0] - end[0] < 0:
-                      if start[1] - end[1] < 0:
-                          start[0] += 1
-                          start[1] += 1
-                          path.append(start)
-                      elif start[1] - end[1] > 0:
-                          start[0] += 1
-                          start[1] -= 1
-                          path.append(start)
-                  elif start[0] - end[0] > 0:
-                      if start[1] - end[1] < 0:
-                          start[0] += 1
-                          start[1] += 1
-                          path.append(start)
-                      elif start[1] - end[1] > 0:
-                          start[0] += 1
-                          start[1] -= 1
-                          path.append(start)
-            elif start[0] == end[0]:
-                if start[1] > end[1]:
-                    start[1] -= 1
-                    path.append(start)
-                elif start[1] < end[1]:
-                    start[1] += 1
-                    path.append(start)
+                pass
+        elif isinstance(piece) == Bishop:
+            while met == False:
+                if abs(start[0] - end[0]) == abs(start[1] - end[1]):
+                    if start[0] == end[0]:
+                        met = True
+                    elif start[0] - end[0] < 0:
+                        if start[1] - end[1] < 0:
+                            start[0] += 1
+                            start[1] += 1
+                            path.append(start)
+                        elif start[1] - end[1] > 0:
+                            start[0] += 1
+                            start[1] -= 1
+                            path.append(start)
+                    elif start[0] - end[0] > 0:
+                        if start[1] - end[1] < 0:
+                            start[0] += 1
+                            start[1] += 1
+                            path.append(start)
+                        elif start[1] - end[1] > 0:
+                            start[0] += 1
+                            start[1] -= 1
+                            path.append(start)
                 else:
                     met = True
-            elif start[1] == end[1]:
-                if start[0] > end[0]:
-                    start[0] -= 1
-                    path.append(start)
-                elif start[0] < end[0]:
-                    start[0] += 1
-                    path.append(start)
-                else:
-                    met = True
+            if len(path) > 0:
+                return path
             else:
-                met = True
-          if len(path) > 0:
-            return path
-          else:
-            pass  
+                pass
 
-        
-  
+        elif isinstance(piece) == Queen:
+            while met == False:
+                if abs(start[0] - end[0]) == abs(start[1] - end[1]):
+                    if start[0] == end[0]:
+                        met = True
+                    elif start[0] - end[0] < 0:
+                        if start[1] - end[1] < 0:
+                            start[0] += 1
+                            start[1] += 1
+                            path.append(start)
+                        elif start[1] - end[1] > 0:
+                            start[0] += 1
+                            start[1] -= 1
+                            path.append(start)
+                    elif start[0] - end[0] > 0:
+                        if start[1] - end[1] < 0:
+                            start[0] += 1
+                            start[1] += 1
+                            path.append(start)
+                        elif start[1] - end[1] > 0:
+                            start[0] += 1
+                            start[1] -= 1
+                            path.append(start)
+                elif start[0] == end[0]:
+                    if start[1] > end[1]:
+                        start[1] -= 1
+                        path.append(start)
+                    elif start[1] < end[1]:
+                        start[1] += 1
+                        path.append(start)
+                    else:
+                        met = True
+                elif start[1] == end[1]:
+                    if start[0] > end[0]:
+                        start[0] -= 1
+                        path.append(start)
+                    elif start[0] < end[0]:
+                        start[0] += 1
+                        path.append(start)
+                    else:
+                        met = True
+                else:
+                    met = True
+            if len(path) > 0:
+                return path
+            else:
+                pass
+
     def checkmateChecker(self):
-        copyboard = None
+        checkmate = True
+        copyboard = self.board
         allposmoves = [[] for _ in range(16)]
         if self.turn % 2 == 0:
             for i in range(16):
                 if whiteTeam[i].alive:
                     posmoves = self.posMoves(whiteTeam[i], copyboard)
                     for move in posmoves:
-                        copyboard = self.board 
+                        self.ghostSave()
+                        copyboard = [list(self.board[x]) for x in range(8)]
+                        print(copyboard, "COPY")
                         self.resetgrid(copyboard)
-                        self.posmovesApply(whiteTeam[i], copyboard)
-                        self.move((whiteTeam[i].y, whiteTeam[i].x), move, copyboard)
+                        self.posmovesApply(whiteTeam[i], posmoves, copyboard)
+                        self.move((whiteTeam[i].x, whiteTeam[i].y), move, copyboard)
                         if self.checkChecker(copyboard):
                             pass
                         else:
                             allposmoves[i].append(move)
                             checkmate = False
+                        self.ghostReset()
         else:
             for i in range(16):
-                  if blackTeam[i].alive:
-                      posmoves = self.posMoves(blackTeam[i], self.board)
-                      for move in posmoves:
-                          copyboard = self.board
-                          for x in range(8):
-                            print(self.board[x], "Copied Board")
-                          self.resetgrid(copyboard)
-                          self.posmovesApply(blackTeam[i], posmoves, copyboard)
-                          self.move((blackTeam[i].y, blackTeam[i].x), move, copyboard)
-                          if self.checkChecker(copyboard):
-                              pass
-                          else:
-                              allposmoves[i].append(move)
-                              checkmate = False
+                if blackTeam[i].alive:
+                    posmoves = self.posMoves(blackTeam[i], copyboard)
+                    for move in posmoves:
+                        self.ghostSave()
+                        copyboard = copy.deepcopy(self.board)
+                        self.resetgrid(copyboard)
+                        self.posmovesApply(blackTeam[i], posmoves, copyboard)
+                        self.move((blackTeam[i].x, blackTeam[i].y), move, copyboard)
+                        if self.checkChecker(copyboard):
+                            pass
+                        else:
+                            allposmoves[i].append(move)
+                            checkmate = False
+                        self.ghostReset()
 
         if checkmate:
             self.endScreen()
         else:
+            print(allposmoves, "ALL POSSIBLE MOVES IN CHECK")
             return allposmoves
-                        
+
     def openg(self):
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
         grid = self.creategrid()
         picked = False  # Is there a piece picked?
         selected = (0, 0)  # Which piece is picked
+        CHECK = pygame.event.custom_type()
 
         running = True
         while running:  # While loop to close game when user quits
@@ -686,8 +707,23 @@ class Board:  # Class for any boards being created
                 if event.type == pygame.QUIT:  # User clicking the close button
                     running = False
 
-                elif self.promotion:
-                    self.menuPawnPromote(self.screen)
+                if event.type == CHECK:
+                    print(self.check, "CHECK OR NOT")
+                    print(self.board, "COMPARE 1")
+                    if self.check:
+                        allpossible = None
+                        if self.turn % 2 == 0:  # Checks if its the correct turn
+                            allpossible = self.checkmateChecker()
+                        elif self.turn % 2 == 1:  # Checks if its the correct turn
+                            allpossible = self.checkmateChecker()
+
+                    if self.promotion:
+                        self.menuPawnPromote(self.screen)
+                        pygame.event.push(CHECK)
+
+                    self.resetgrid(self.board)
+                    print(self.board, "COMPARE 2")
+
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:  # User clicking anywhere on the game window
                     pos = pygame.mouse.get_pos(
@@ -697,12 +733,11 @@ class Board:  # Class for any boards being created
                     )  # Saves the coordinates of the square the mouse selected
                     # print(x, y)  # Testing Purposes
 
-                    if not self.check:  
+                    if not self.check:
                         if not picked:
-                            print(self.check, "Check Status")
                             if self.board[y][x] is not None:
                                 if self.turn % 2 == 0 and self.board[y][
-                                        x].team == "white":  # Checks if its the correct turn
+                                    x].team == "white":  # Checks if its the correct turn
                                     try:
                                         self.grid[y][
                                             x].colour = lblue  # Visually represents selected square
@@ -713,16 +748,16 @@ class Board:  # Class for any boards being created
                                         possible = self.posMoves(
                                             self.board[y][x], self.board)
                                         self.posmovesApply(self.board[y][x], possible, self.board)
-                                          # Saves possible moves to an array
+                                        # Saves possible moves to an array
                                         self.visible(
                                             possible
                                         )  # Makes the pieces visible for possible moves
-    
+
                                     finally:
                                         pass
-    
+
                                 elif self.turn % 2 == 1 and self.board[y][
-                                        x].team == "black":  # Checks if its the correct turn
+                                    x].team == "black":  # Checks if its the correct turn
                                     try:
                                         self.grid[y][
                                             x].colour = lblue  # Visually represents selected square
@@ -733,48 +768,48 @@ class Board:  # Class for any boards being created
                                         possible = self.posMoves(
                                             self.board[y][x], self.board)
                                         self.posmovesApply(self.board[y][x], possible, self.board)
-                                          # Saves possible moves to an array
+                                        # Saves possible moves to an array
                                         self.visible(
                                             possible
                                         )  # Makes the pieces visible for possible moves
-    
+
                                     finally:
                                         pass
-    
+
                                 else:
                                     print(
                                         "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
                                     )
-    
+
                         elif self.board[y][
-                                x] is not None:  # Checks not none as all possible moves are marked.
+                            x] is not None:  # Checks not none as all possible moves are marked.
                             try:
                                 if self.board[y][
-                                        x].killable:  # This is for when a piece occupies the space
+                                    x].killable:  # This is for when a piece occupies the space
                                     self.move(
                                         selected,
                                         (y, x), self.board)  # Moves the piece accordingly
                                     self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                     self.enPassantCheck()
                                     self.kingTracker()
-                                    print(self.checkChecker(self.board), "Result of Checker")
                                     self.check = self.checkChecker(self.board)
-                                    self.resetgrid()
+                                    self.resetgrid(self.board)
                                     self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
                                     picked = False
-    
+
                                 else:
-                                    self.resetgrid()
+                                    self.resetgrid(self.board)
                                     picked = False
-    
-                            except:
+
+                            except AttributeError:
                                 if self.board[y][
-                                        x] == 'x':  # This is for when its an empty space
+                                    x] == 'x':  # This is for when its an empty space
                                     if self.lastPawnJump != None:
                                         if x != selected[0] and y == selected[1]:
                                             if isinstance(self.board[selected[1]][selected[0]], Pawn):
                                                 self.moveEnPassant(selected, self.lastPawnJump, self.board)
-                                                    
+
                                                 # Runs en passant if check completes.
                                         else:
                                             self.move(
@@ -789,8 +824,9 @@ class Board:  # Class for any boards being created
                                     self.check = self.checkChecker(self.board)
                                     self.resetgrid(self.board)
                                     self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
                                     picked = False
-    
+
                                 else:
                                     self.resetgrid(self.board)
                                     picked = False
@@ -798,7 +834,7 @@ class Board:  # Class for any boards being created
                         if not picked:
                             if self.board[y][x] is not None:
                                 if self.turn % 2 == 0 and self.board[y][
-                                        x].team == "white":  # Checks if its the correct turn
+                                    x].team == "white":  # Checks if its the correct turn
                                     try:
                                         self.grid[y][
                                             x].colour = lblue  # Visually represents selected square
@@ -806,17 +842,17 @@ class Board:  # Class for any boards being created
                                             x, y
                                         )  # Changes selected square to this
                                         picked = True  # Updates picked value
-                                        allpossible = self.checkmateChecker()
-                                        # Saves possible moves to an array
-                                        self.visible(
-                                            allpossible[whiteTeam[self.board[y][x]]]
-                                        )  # Makes the pieces visible for possible moves
-    
+                                        print(self.board[y][x], "KEY ERROR?!?!")
+                                        self.posmovesApply(self.board[y][x], allpossible[whiteTeam[self.board[y][x]]],
+                                                           self.board)
+                                        self.visible(allpossible[whiteTeam[self.board[y][x]]])
+                                        # Makes the pieces visible for possible moves
+
                                     finally:
                                         pass
-    
+
                                 elif self.turn % 2 == 1 and self.board[y][
-                                        x].team == "black":  # Checks if its the correct turn
+                                    x].team == "black":  # Checks if its the correct turn
                                     try:
                                         self.grid[y][
                                             x].colour = lblue  # Visually represents selected square
@@ -824,49 +860,49 @@ class Board:  # Class for any boards being created
                                             x, y
                                         )  # Changes selected square to this
                                         picked = True  # Updates picked value
-                                        allpossible = self.checkmateChecker()
-                                      # Saves possible moves to an array
+                                        self.posmovesApply(self.board[y][x], allpossible[blackTeam[self.board[y][x]]],
+                                                           self.board)
                                         self.visible(
-                                            allpossible[whiteTeam[self.board[y][x]]]
+                                            allpossible[blackTeam[self.board[y][x]]]
                                         )  # Makes the pieces visible for possible moves
-    
+
                                     finally:
                                         pass
-    
+
                                 else:
                                     print(
                                         "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
                                     )
-    
+
                         elif self.board[y][
-                                x] is not None:  # Checks not none as all possible moves are marked.
+                            x] is not None:  # Checks not none as all possible moves are marked.
                             try:
                                 if self.board[y][
-                                        x].killable:  # This is for when a piece occupies the space
+                                    x].killable:  # This is for when a piece occupies the space
                                     self.move(
                                         selected,
                                         (y, x), self.board)  # Moves the piece accordingly
                                     self.turn += 1  # Adds one to the turn so it can check who's turn it is
                                     self.enPassantCheck()
                                     self.kingTracker()
-                                    print(self.checkChecker(self.board), "Result of Checker")
                                     self.check = self.checkChecker(self.board)
                                     self.resetgrid(self.board)
                                     self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
                                     picked = False
-    
+
                                 else:
                                     self.resetgrid(self.board)
                                     picked = False
-    
-                            except:
+
+                            except AttributeError:
                                 if self.board[y][
-                                        x] == 'x':  # This is for when its an empty space
+                                    x] == 'x':  # This is for when its an empty space
                                     if self.lastPawnJump != None:
                                         if x != selected[0] and y == selected[1]:
                                             if isinstance(self.board[selected[1]][selected[0]], Pawn):
                                                 self.moveEnPassant(selected, self.lastPawnJump, self.board)
-                                                    
+
                                                 # Runs en passant if check completes.
                                         else:
                                             self.move(
@@ -879,16 +915,15 @@ class Board:  # Class for any boards being created
                                     self.enPassantCheck()
                                     self.kingTracker()
                                     self.check = self.checkChecker(self.board)
-                                    self.resetgrid()
+                                    self.resetgrid(self.board)
                                     self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
                                     picked = False
-    
+
                                 else:
-                                    self.resetgrid()
+                                    self.resetgrid(self.board)
                                     picked = False
 
-
-                  
             self.refresh(grid)
 
 

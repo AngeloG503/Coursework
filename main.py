@@ -5,4 +5,4 @@ from interface import Menus, Account
 # menu = Menus(ac)
 # menu.mainLoop()
 
-# b.openg()
+b.openg()
