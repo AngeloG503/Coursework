@@ -147,14 +147,20 @@ class King(Piece):
         # whether it is a free space or a piece is there, and decides whether it is killable or not.
 
         everywhere = [[[self.y, self.x + z] for z in range(1, 8)],
-                      [[self.y + z, self.x] for z in range(1, 8)],  # This array holds all the possible positions for anything in a direct diagonal or straight line from the King
+                      [[self.y + z, self.x] for z in range(1, 8)],
+                      # This array holds all the possible positions for anything in a direct diagonal or straight line from the King
                       [[self.y - z, self.x] for z in range(1, 8)],
                       [[self.y, self.x - z] for z in range(1, 8)],
                       [[self.y + z, self.x + z] for z in range(1, 8)],
                       [[self.y + z, self.x - z] for z in range(1, 8)],
                       [[self.y - z, self.x + z] for z in range(1, 8)],
-                      [[self.y - z, self.x - z] for z in range(1, 8)]
+                      [[self.y - z, self.x - z] for z in range(1, 8)],
                       ]
+
+        for z in range(-2, 3):  # Starts from a negative number that makes it so I can build a 5x5 grid around the piece
+            for q in range(-2, 3):
+                if (z * z) + (q * q) == 5:  # Using pythagoras theorem, I can determine the attempted possible moves.
+                    everywhere.append([[self.y + z, self.x + q]])  # Adds it to the array.
 
         possibleattack = []  # Array to store all the real possible moves.
 
