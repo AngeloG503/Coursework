@@ -355,6 +355,33 @@ class Board:  # Class for any boards being created
                     start2] = None  # Changes previous square to nothing
                 board[end1][end2].x, board[end1][end2].y = end2, end1
                 board[end1][end2].moveCount += 1  # Adds one to the move count
+
+        elif isinstance(board[start1][start2], King) and abs(start2 - end2) == 2:
+            if (start2 - end2) == -2:
+                board[end1][end2] = board[start1][
+                    start2]  # Changes the end square to contain the piece
+                board[start1][
+                    start2] = None  # Changes previous square to nothing
+                board[end1][end2].x, board[end1][end2].y = end2, end1
+                board[end1][end2].moveCount += 1  # Adds one to the move count
+
+                board[end1][end2 - 1] = board[start1][start2 + 3]  # Moving the rook for castling
+                board[start1][start2 + 3] = None
+                board[end1][end2 - 1].x, board[end1][end2 - 1].y = end2 - 1, end1
+
+            if (start2 - end2) == 2:
+                board[end1][end2] = board[start1][
+                    start2]  # Changes the end square to contain the piece
+                board[start1][
+                    start2] = None  # Changes previous square to nothing
+                board[end1][end2].x, board[end1][end2].y = end2, end1
+                board[end1][end2].moveCount += 1  # Adds one to the move count
+
+                board[end1][end2 + 1] = board[start1][start2 - 4]  # Moving the rook for castling
+                board[start1][start2 - 4] = None
+                board[end1][end2 + 1].x, board[end1][end2 + 1].y = end2 + 1, end1
+
+
         else:
             try:
                 if realgame:

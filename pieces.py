@@ -141,7 +141,32 @@ class King(Piece):
             for q in range(-1, 2):
                 onespace.append([[self.y + z, self.x + q]])  # Adds it to the array.
 
+        self.castling(board, onespace)
+
         return self.possiblechecker(onespace, board)
+
+    def castling(self, board, posarray):
+        if self.moveCount == 0:
+            try:
+                if board[self.y][self.x + 3].moveCount == 0:
+                    empty = True
+                    for i in range(5, 6, 1):
+                        if board[self.y][i] is not None:
+                            empty = False
+
+                    if empty:
+                        posarray.append([[self.y, self.x + 2]])
+
+                if board[self.y][self.x - 4].moveCount == 0:
+                    empty = True
+                    for i in range(3, 1, -1):
+                        if board[self.y][i] is not None:
+                            empty = False
+                    if empty:
+                        posarray.append([[self.y, self.x - 2]])
+
+            except:
+                pass
 
     def legalAttacks(self, board):  # Function that checks whether a piece is a real possible move and
         # whether it is a free space or a piece is there, and decides whether it is killable or not.
