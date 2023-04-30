@@ -213,6 +213,7 @@ class Menus():
         #     image_path="bgImage.png",
         #     drawing_mode=pygame_menu.baseimage.IMAGE_MODE_CENTER)
 
+        self.winner = None
         self.mytheme = pygame_menu.Theme(
             background_color=(6, 199, 169, 201),  # transparent background
             title_background_color=(4, 47, 126),
@@ -235,8 +236,12 @@ class Menus():
         self.ac.logout()
         menu.enable()
         menu2.disable()
-  
-         
+
+    def startGame(self, menu, menu2):
+        self.winner = b.gameStart()
+        menu.enable()
+        menu2.disable()
+
     def mainLoop(self):
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
@@ -246,6 +251,7 @@ class Menus():
         mainmenu = pygame_menu.Menu('Main Menu', 800, 800, theme=self.mytheme)
         signupmenu = pygame_menu.Menu('Sign Up', 800, 800, theme=self.mytheme)
         loginmenu = pygame_menu.Menu('Log In', 800, 800, theme=self.mytheme)
+        endmenu = pygame_menu.Menu('Game Over', 800, 800, theme=self.mytheme)
         
         loginUsernameInput = loginmenu.add.text_input(
             "Username: ")
@@ -275,7 +281,7 @@ class Menus():
         mainmenu.add.button('Exit', pygame_menu.events.EXIT)
         mainmenu.enable()
 
-        gamemenu.add.button('Find Game', b.openg)
+        gamemenu.add.button('Find Game', self.startGame, endmenu, gamemenu)
         gamemenu.add.button('Log Out', self.logout, mainmenu, gamemenu)
         gamemenu.add.button('View Leaderboards', print, "leaderboards")
         gamemenu.add.button('Exit', pygame_menu.events.EXIT)
@@ -285,6 +291,14 @@ class Menus():
         adminmenu.add.button('View Leaderboards', print, "leaderboards")
         adminmenu.add.button('View Leaderboards', print, "leaderboards")
         adminmenu.add.button('Back', pygame_menu.events.BACK)
+
+        winningmessage = "Game Over, winner is ", self.winner , "!"
+        elochange = "Your new elo is "
+        endmenu.add.label(winningmessage)
+        endmenu.add.label(elochange)
+        endmenu.add.button('Play Again', self.startGame, endmenu, gamemenu)
+        endmenu.add.button('Back', pygame_menu.events.BACK)
+        endmenu.add.button('Exit', pygame_menu.events.EXIT)
 
 
       

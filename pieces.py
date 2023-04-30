@@ -135,6 +135,10 @@ class Horse(Piece):
         return self.possiblechecker(pythag, board)
 
 class King(Piece):
+    def __init(self, team, image, rect):
+        super().__init__(self, team, image, rect)
+        self.castlingBool = False
+
     def possible(self, board):
         onespace = []  # array for one space around it.
         for z in range(-1, 2):  # Starts from a negative number that makes it so I can build a 1x1 grid around the piece
@@ -153,17 +157,22 @@ class King(Piece):
                     for i in range(5, 6, 1):
                         if board[self.y][i] is not None:
                             empty = False
+                            self.castlingBool = False
 
                     if empty:
                         posarray.append([[self.y, self.x + 2]])
+                        self.castlingBool = True
 
                 if board[self.y][self.x - 4].moveCount == 0:
                     empty = True
                     for i in range(3, 1, -1):
                         if board[self.y][i] is not None:
                             empty = False
+                            self.castlingBool = False
+
                     if empty:
                         posarray.append([[self.y, self.x - 2]])
+                        self.castlingBool = True
 
             except:
                 pass

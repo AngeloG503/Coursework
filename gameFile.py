@@ -1,6 +1,7 @@
 import pygame
 import pygame_menu
 import copy
+from stockfish import Stockfish
 from pieces import Pawn, King, Queen, Bishop, Horse, Rook
 
 wP1, wP2, wP3, wP4, wP5, wP6, wP7, wP8 = Pawn(
@@ -112,6 +113,66 @@ blackTeam = {
     bR2: 15, 15: bR2
 }
 
+chessKey = {
+    "a": 0,
+    "b": 1,
+    "c": 2,
+    "d": 3,
+    "e": 4,
+    "f": 5,
+    "g": 6,
+    "h": 7,
+    "1": 7,
+    "2": 6,
+    "3": 5,
+    "4": 4,
+    "5": 3,
+    "6": 2,
+    "7": 1,
+    "8": 0
+}
+
+reversechessKeyx = {
+    0: "a",
+    1: "b",
+    2: "c",
+    3: "d",
+    4: "e",
+    5: "f",
+    6: "g",
+    7: "h"
+}
+
+reversechessKeyy = {
+    7: 1,
+    6: 2,
+    5: 3,
+    4: 4,
+    3: 5,
+    2: 6,
+    1: 7,
+    0: 8
+}
+
+
+bPieces = {
+    "Pawn": "p",
+    "Rook": "r",
+    "Horse": "n",
+    "King": "k",
+    "Queen": "q",
+    "Bishop": "b"
+}
+
+wPieces = {
+    "Pawn": "P",
+    "Rook": "R",
+    "Horse": "N",
+    "King": "K",
+    "Queen": "Q",
+    "Bishop": "B"
+}
+
 startingPosBlack = [bR1, bH1, bB1, bQ1, bK1, bB2, bH2, bR2]
 startingPosWhite = [wR1, wH1, wB1, wQ1, wK1, wB2, wH2, wR2]
 
@@ -132,9 +193,89 @@ class Square:
         self.colour = lbrown  # Default colour for a "square", changed when created
 
 
+stockfish = Stockfish("stockfish.exe", parameters={"UCI_Elo": 1000, "Hash": 512, "Threads": 20})
+
+
+class Fen:
+    def __init__(self):
+        self.fen = None
+
+    def getFen(self, b):
+        fen = ""
+        blankCount = 0
+        for z in range(8):
+            for y in range(8):
+                if b.board[z][y] == None:
+                    blankCount += 1
+                    if y == 7:
+                        fen = fen + str(blankCount)
+                        blankCount = 0
+                elif b.board[z][y].team == "white":
+                    if blankCount > 0:
+                        fen = fen + str(blankCount)
+                        blankCount = 0
+                    fen = fen + wPieces[type(b.board[z][y]).__name__]
+                elif b.board[z][y].team == "black":
+                    if blankCount > 0:
+                        fen = fen + str(blankCount)
+                        blankCount = 0
+                    fen = fen + bPieces[type(b.board[z][y]).__name__]
+            if z == 7:
+                pass
+            else:
+                fen = fen + "/"
+
+        if b.turn % 2 == 0:
+            fen = fen + " w"
+        else:
+            fen = fen + " b"
+
+        fen = fen + " KQkq"
+
+        fen = fen + " -"
+
+        fen = fen + " 0 "
+
+        if b.turn == 0:
+            fen = fen + "1"
+        else:
+            fen = fen + str(b.turn)
+
+        self.fen = fen
+        return self.fen
+
+    def printFen(self):
+        print(self.fen)
+
+    def myMoves(self, stockfishmove):
+        startpos = stockfishmove[:2]
+        endpos = stockfishmove[2:]
+
+        startx, starty = chessKey[startpos[0]], chessKey[startpos[1]]
+        endy, endx = chessKey[endpos[1]], chessKey[endpos[0]]
+
+        print(stockfishmove)
+        return (startx, starty), (endy, endx)
+
+    def revMyMoves(self, startpos, endpos):
+        startx, starty = str(reversechessKeyx[startpos[0]]), str(reversechessKeyy[startpos[1]])
+        endx, endy = str(reversechessKeyx[endpos[1]]), str(reversechessKeyy[endpos[0]])
+
+        move = startx + starty + endx + endy
+        print(move)
+        return move
+
+    def stockfishMove(self, moveDone, stockfishclass):
+        stockfishclass.stockfish.make_moves_from_current_position([moveDone])
+
+
+
+f = Fen()
+
 class Board:  # Class for any boards being created
 
     def __init__(self):
+        self.winner = None
         self.grid = [
         ]  # Holds each separate "square" and allows for data to be stored within this
         self.board = [[None for _ in range(8)]
@@ -145,6 +286,7 @@ class Board:  # Class for any boards being created
         self.turnAddedPassant = 0  # Checks how long it has been since the en passant was stored in case of not using.
         self.check = False
         self.attackers = []
+        self.checkmate = False
 
         for x in range(
                 8
@@ -599,8 +741,8 @@ class Board:  # Class for any boards being created
                 self.attackers = []
                 return False
 
-    def checkmateChecker(self):
-        checkmate = True
+    def checkmateChecker(self, screen):
+        self.checkmate = True
         allposmoves = [[] for _ in range(16)]
         if self.turn % 2 == 0:
             for i in range(16):
@@ -616,7 +758,7 @@ class Board:  # Class for any boards being created
                             pass
                         else:
                             allposmoves[i].append(move)
-                            checkmate = False
+                            self.checkmate = False
                         self.ghostReset()
         else:
             for i in range(16):
@@ -632,14 +774,248 @@ class Board:  # Class for any boards being created
                             pass
                         else:
                             allposmoves[i].append(move)
-                            checkmate = False
+                            self.checkmate = False
                         self.ghostReset()
 
-        if checkmate:
-            self.endScreen()
+        if self.checkmate:
+            return self.checkmate
         else:
             print(allposmoves, "ALL POSSIBLE MOVES IN CHECK")
             return allposmoves
+
+    def gameStart(self):
+        while self.winner == None:
+            b.openg()
+        return self.winner
+
+    def opengC(self):
+        pygame.init()  # Initialise pygame
+        self.screen = pygame.display.set_mode([800, 800])
+        grid = self.creategrid()
+        picked = False  # Is there a piece picked?
+        selected = (0, 0)  # Which piece is picked
+        CHECK = pygame.event.custom_type()
+        CHECKMATE = pygame.event.custom_type()
+        BOT = pygame.event.custom_type()
+
+        running = True
+        while running:  # While loop to close game when user quits
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:  # User clicking the close button
+                    running = False
+
+                if event.type == BOT:
+                    x = stockfish.get_best_move()
+                    temp = Fen.myMoves(self, x)
+                    print(temp)
+
+                    self.move(
+                        temp[0],
+                        temp[1], self.board, True)  # Moves the piece accordingly
+                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                    self.enPassantCheck()
+                    self.kingTracker()
+                    self.check = self.checkChecker(self.board, "black")
+                    self.fullreset(self.board)
+                    self.checkPawn()
+                    pygame.event.post(pygame.event.Event(CHECK))
+                    stockfish.make_moves_from_current_position([x])
+                    print("Bot move done")  # DEBUG
+
+                if event.type == CHECK:
+                    if self.checkmate:
+                        break
+
+                    print("CHECK: ", self.check)
+                    if self.check:
+                        allpossible = None
+                        if self.turn % 2 == 0:  # Checks if its the correct turn
+                            allpossible = self.checkmateChecker(self.screen)
+                        elif self.turn % 2 == 1:  # Checks if its the correct turn
+                            allpossible = self.checkmateChecker(self.screen)
+
+                    if self.promotion:
+                        self.menuPawnPromote(self.screen)
+                        pygame.event.post(pygame.event.Event(CHECK))
+
+                    self.fullreset(self.board)
+
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:  # User clicking anywhere on the game window
+                    pos = pygame.mouse.get_pos(
+                    )  # Gets the coordinates of the mouse
+                    x, y = self.locatesquare(
+                        pos
+                    )  # Saves the coordinates of the square the mouse selected
+                    # print(x, y)  # Testing Purposes
+
+                    if not self.check:
+                        if not picked:
+                            if self.board[y][x] is not None:
+                                if self.turn % 2 == 0 and self.board[y][
+                                    x].team == "white":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        possible = self.posMoves(
+                                            self.board[y][x], self.board)
+                                        self.posmovesApply(self.board[y][x], possible, self.board)
+                                        # Saves possible moves to an array
+                                        self.visible(
+                                            possible
+                                        )  # Makes the pieces visible for possible moves
+
+                                    finally:
+                                        pass
+                                else:
+                                    print(
+                                        "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
+                                    )
+
+                        elif self.board[y][
+                            x] is not None:  # Checks not none as all possible moves are marked.
+                            try:
+                                if self.board[y][
+                                    x].killable:  # This is for when a piece occupies the space
+                                    self.move(
+                                        selected,
+                                        (y, x), self.board, True)  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board, self.board[y][x].team)
+                                    self.fullreset(self.board)
+                                    self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
+                                    pygame.event.post(pygame.event.Event(BOT))
+                                    stockfish.make_moves_from_current_position([Fen.revMyMoves(self, selected, (y, x))])
+                                    picked = False
+
+                                else:
+                                    self.fullreset(self.board)
+                                    picked = False
+
+                            except AttributeError:
+                                if self.board[y][
+                                    x] == 'x':  # This is for when its an empty space
+                                    if self.lastPawnJump != None:
+                                        if x != selected[0] and y == selected[1]:
+                                            if isinstance(self.board[selected[1]][selected[0]], Pawn):
+                                                self.moveEnPassant(selected, self.lastPawnJump, self.board)
+
+                                                # Runs en passant if check completes.
+                                        else:
+                                            self.move(
+                                                selected, (y, x), self.board, True
+                                            )  # Moves the piece accordingly
+                                    else:
+                                        self.move(selected, (y, x), self.board, True
+                                                  )  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board, self.board[y][x].team)
+                                    self.fullreset(self.board)
+                                    self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
+                                    pygame.event.post(pygame.event.Event(BOT))
+                                    stockfish.make_moves_from_current_position([Fen.revMyMoves(self, selected, (y, x))])
+                                    picked = False
+
+                                else:
+                                    self.fullreset(self.board)
+                                    picked = False
+                    if self.check:
+                        if not picked:
+                            if self.board[y][x] is not None:
+                                if self.turn % 2 == 0 and self.board[y][
+                                    x].team == "white":  # Checks if its the correct turn
+                                    try:
+                                        self.grid[y][
+                                            x].colour = lblue  # Visually represents selected square
+                                        selected = (
+                                            x, y
+                                        )  # Changes selected square to this
+                                        picked = True  # Updates picked value
+                                        print(self.posMoves(self.board[y][x], self.board))
+                                        self.posmovesApply(self.board[y][x], allpossible[whiteTeam[self.board[y][x]]],
+                                                           self.board)
+                                        self.visible(allpossible[whiteTeam[self.board[y][x]]])
+                                        # Makes the pieces visible for possible moves
+
+                                    finally:
+                                        pass
+
+                                else:
+                                    print(
+                                        "It is not your turn (Debugging purposes, DO NOT LEAVE AS FINAL PRODUCT)"
+                                    )
+
+                        elif self.board[y][
+                            x] is not None:  # Checks not none as all possible moves are marked.
+                            try:
+                                if self.board[y][
+                                    x].killable:  # This is for when a piece occupies the space
+                                    self.move(
+                                        selected,
+                                        (y, x), self.board, True)  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board, self.board[y][x].team)
+                                    self.fullreset(self.board)
+                                    self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
+                                    pygame.event.post(pygame.event.Event(BOT))
+                                    stockfish.make_moves_from_current_position([Fen.revMyMoves(self, selected, (y, x))])
+                                    picked = False
+
+                                else:
+                                    self.fullreset(self.board)
+                                    picked = False
+
+                            except AttributeError:
+                                if self.board[y][
+                                    x] == 'x':  # This is for when its an empty space
+                                    if self.lastPawnJump != None:
+                                        if x != selected[0] and y == selected[1]:
+                                            if isinstance(self.board[selected[1]][selected[0]], Pawn):
+                                                self.moveEnPassant(selected, self.lastPawnJump, self.board)
+
+                                                # Runs en passant if check completes.
+                                        else:
+                                            self.move(
+                                                selected, (y, x), self.board, True
+                                            )  # Moves the piece accordingly
+                                    else:
+                                        self.move(selected, (y, x), self.board, True
+                                                  )  # Moves the piece accordingly
+                                    self.turn += 1  # Adds one to the turn so it can check who's turn it is
+                                    self.enPassantCheck()
+                                    self.kingTracker()
+                                    self.check = self.checkChecker(self.board, self.board[y][x].team)
+                                    self.fullreset(self.board)
+                                    self.checkPawn()
+                                    pygame.event.post(pygame.event.Event(CHECK))
+                                    pygame.event.post(pygame.event.Event(BOT))
+                                    stockfish.make_moves_from_current_position([Fen.revMyMoves(self, selected, (y, x))])
+                                    picked = False
+
+                                else:
+                                    self.fullreset(self.board)
+                                    picked = False
+
+            if self.checkmate:
+                break
+            self.refresh(grid)
+        if self.turn % 2 == 0:
+            return "black"
+        else:
+            return "white"
 
     def openg(self):
         pygame.init()  # Initialise pygame
@@ -648,6 +1024,7 @@ class Board:  # Class for any boards being created
         picked = False  # Is there a piece picked?
         selected = (0, 0)  # Which piece is picked
         CHECK = pygame.event.custom_type()
+        CHECKMATE = pygame.event.custom_type()
 
         running = True
         while running:  # While loop to close game when user quits
@@ -656,17 +1033,20 @@ class Board:  # Class for any boards being created
                     running = False
 
                 if event.type == CHECK:
+                    if self.checkmate:
+                        break
+
                     print("CHECK: ", self.check)
                     if self.check:
                         allpossible = None
                         if self.turn % 2 == 0:  # Checks if its the correct turn
-                            allpossible = self.checkmateChecker()
+                            allpossible = self.checkmateChecker(self.screen)
                         elif self.turn % 2 == 1:  # Checks if its the correct turn
-                            allpossible = self.checkmateChecker()
+                            allpossible = self.checkmateChecker(self.screen)
 
                     if self.promotion:
                         self.menuPawnPromote(self.screen)
-                        pygame.event.push(CHECK)
+                        pygame.event.post(pygame.event.Event(CHECK))
 
                     self.fullreset(self.board)
 
@@ -870,7 +1250,12 @@ class Board:  # Class for any boards being created
                                     self.fullreset(self.board)
                                     picked = False
 
+            if self.checkmate:
+                break
             self.refresh(grid)
-
+        if self.turn % 2 == 0:
+            return "black"
+        else:
+            return "white"
 
 b = Board()
