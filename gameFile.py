@@ -193,9 +193,6 @@ class Square:
         self.colour = lbrown  # Default colour for a "square", changed when created
 
 
-stockfish = Stockfish("stockfish.exe", parameters={"UCI_Elo": 1000, "Hash": 512, "Threads": 20})
-
-
 class Fen:
     def __init__(self):
         self.fen = None
@@ -254,7 +251,7 @@ class Fen:
         startx, starty = chessKey[startpos[0]], chessKey[startpos[1]]
         endy, endx = chessKey[endpos[1]], chessKey[endpos[0]]
 
-        print(stockfishmove)
+        # print(stockfishmove)
         return (startx, starty), (endy, endx)
 
     def revMyMoves(self, startpos, endpos):
@@ -262,7 +259,8 @@ class Fen:
         endx, endy = str(reversechessKeyx[endpos[1]]), str(reversechessKeyy[endpos[0]])
 
         move = startx + starty + endx + endy
-        print(move)
+
+        # print(move)
         return move
 
     def stockfishMove(self, moveDone, stockfishclass):
@@ -273,8 +271,8 @@ class Fen:
 f = Fen()
 
 class Board:  # Class for any boards being created
-
-    def __init__(self):
+    def __init__(self, menuVAR):
+        self.menuVar = menuVAR
         self.winner = None
         self.grid = [
         ]  # Holds each separate "square" and allows for data to be stored within this
@@ -288,20 +286,28 @@ class Board:  # Class for any boards being created
         self.attackers = []
         self.checkmate = False
 
-        for x in range(
-                8
-        ):  # Sets the board up to have the pieces in the correct places
-            self.board[1][x] = pawns[x + 8]
-            self.board[6][x] = pawns[x]
+    def setupBoard(self):
+            for x in range(8):  # Sets the board up to have the pieces in the correct places
+                self.board[1][x] = pawns[x + 8]
+                self.board[6][x] = pawns[x]
 
-        self.board[0] = startingPosBlack
-        self.board[7] = startingPosWhite
+            self.board[0] = startingPosBlack
+            self.board[7] = startingPosWhite
 
-        for i in range(8):
-            for j in range(8):
-                if self.board[i][j] != None:
-                    self.board[i][j].x = j
-                    self.board[i][j].y = i
+            for i in range(8):
+                for j in range(8):
+                    if self.board[i][j] != None:
+                        self.board[i][j].x = j
+                        self.board[i][j].y = i
+
+            for i in range(16):
+                blackTeam[i].moveCount = 0
+                blackTeam[i].alive = True
+
+                whiteTeam[i].moveCount = 0
+                whiteTeam[i].alive = True
+
+
 
     def printboard(self):  # For testing purposes
         for x in range(8):
@@ -410,13 +416,13 @@ class Board:  # Class for any boards being created
                 if self.checkChecker(copyboard, "black"):
                     toremove.append(move)
             else:
-                print(self.checkChecker(copyboard, "white"))
+                # print(self.checkChecker(copyboard, "white"))
                 if self.checkChecker(copyboard, "white"):
                     toremove.append(move)
             self.ghostReset()
 
-        print(type(piece), posmoves, "POSSIBLE MOVES")
-        print(toremove, "TO REMOVE")
+        # print(type(piece), posmoves, "POSSIBLE MOVES")
+        # print(toremove, "TO REMOVE")
         if len(toremove) > 0:
             for items in toremove:
                 posmoves.remove(items)
@@ -780,7 +786,7 @@ class Board:  # Class for any boards being created
         if self.checkmate:
             return self.checkmate
         else:
-            print(allposmoves, "ALL POSSIBLE MOVES IN CHECK")
+            # print(allposmoves, "ALL POSSIBLE MOVES IN CHECK")
             return allposmoves
 
     def gameStart(self):
@@ -788,7 +794,19 @@ class Board:  # Class for any boards being created
             b.openg()
         return self.winner
 
-    def opengC(self):
+    def opengC(self, difficulty, elo):
+        self.setupBoard()
+        if difficulty == "EASY":
+            botElo = elo - 200
+        elif difficulty == "NORMAL":
+            botElo = elo
+        elif difficulty == "HARD":
+            botElo = elo + 200
+        elif difficulty == "DEAD":
+            botElo = elo + 500
+
+        stockfish = Stockfish("stockfish.exe", parameters={"UCI_Elo": botElo, "Hash": 512, "Threads": 20})
+
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
         grid = self.creategrid()
@@ -807,7 +825,7 @@ class Board:  # Class for any boards being created
                 if event.type == BOT:
                     x = stockfish.get_best_move()
                     temp = Fen.myMoves(self, x)
-                    print(temp)
+                    # print(temp)
 
                     self.move(
                         temp[0],
@@ -820,13 +838,13 @@ class Board:  # Class for any boards being created
                     self.checkPawn()
                     pygame.event.post(pygame.event.Event(CHECK))
                     stockfish.make_moves_from_current_position([x])
-                    print("Bot move done")  # DEBUG
+                    # print("Bot move done")  # DEBUG
 
                 if event.type == CHECK:
                     if self.checkmate:
                         break
 
-                    print("CHECK: ", self.check)
+                    # print("CHECK: ", self.check)
                     if self.check:
                         allpossible = None
                         if self.turn % 2 == 0:  # Checks if its the correct turn
@@ -878,6 +896,9 @@ class Board:  # Class for any boards being created
 
                         elif self.board[y][
                             x] is not None:  # Checks not none as all possible moves are marked.
+                            if self.board[y][x] == self.board[selected[1]][selected[0]]:
+                                self.fullreset(self.board)
+                                picked = False
                             try:
                                 if self.board[y][
                                     x].killable:  # This is for when a piece occupies the space
@@ -908,6 +929,10 @@ class Board:  # Class for any boards being created
                                                 self.moveEnPassant(selected, self.lastPawnJump, self.board)
 
                                                 # Runs en passant if check completes.
+                                            else:
+                                                self.move(
+                                                    selected, (y, x), self.board, True
+                                                )
                                         else:
                                             self.move(
                                                 selected, (y, x), self.board, True
@@ -941,7 +966,7 @@ class Board:  # Class for any boards being created
                                             x, y
                                         )  # Changes selected square to this
                                         picked = True  # Updates picked value
-                                        print(self.posMoves(self.board[y][x], self.board))
+                                        # print(self.posMoves(self.board[y][x], self.board))
                                         self.posmovesApply(self.board[y][x], allpossible[whiteTeam[self.board[y][x]]],
                                                            self.board)
                                         self.visible(allpossible[whiteTeam[self.board[y][x]]])
@@ -957,9 +982,12 @@ class Board:  # Class for any boards being created
 
                         elif self.board[y][
                             x] is not None:  # Checks not none as all possible moves are marked.
+                            if self.board[y][x] == self.board[selected[1]][selected[0]]:
+                                self.fullreset(self.board)
+                                picked = False
                             try:
                                 if self.board[y][
-                                    x].killable:  # This is for when a piece occupies the space
+                                    x].killable and self.board[y][x].team != self.board[selected[1]][selected[0]].team:  # This is for when a piece occupies the space
                                     self.move(
                                         selected,
                                         (y, x), self.board, True)  # Moves the piece accordingly
@@ -987,6 +1015,10 @@ class Board:  # Class for any boards being created
                                                 self.moveEnPassant(selected, self.lastPawnJump, self.board)
 
                                                 # Runs en passant if check completes.
+                                            else:
+                                                self.move(
+                                                    selected, (y, x), self.board, True
+                                                )  # Moves the piece accordingly
                                         else:
                                             self.move(
                                                 selected, (y, x), self.board, True
@@ -1013,11 +1045,14 @@ class Board:  # Class for any boards being created
                 break
             self.refresh(grid)
         if self.turn % 2 == 0:
+            self.menuVar.winner = "black"
             return "black"
         else:
+            self.menuVar.winner = "white"
             return "white"
 
     def openg(self):
+        self.setupBoard()
         pygame.init()  # Initialise pygame
         self.screen = pygame.display.set_mode([800, 800])
         grid = self.creategrid()
@@ -1036,7 +1071,7 @@ class Board:  # Class for any boards being created
                     if self.checkmate:
                         break
 
-                    print("CHECK: ", self.check)
+                    # print("CHECK: ", self.check)
                     if self.check:
                         allpossible = None
                         if self.turn % 2 == 0:  # Checks if its the correct turn
@@ -1137,6 +1172,10 @@ class Board:  # Class for any boards being created
                                                 self.moveEnPassant(selected, self.lastPawnJump, self.board)
 
                                                 # Runs en passant if check completes.
+                                            else:
+                                                self.move(
+                                                    selected, (y, x), self.board, True
+                                                )
                                         else:
                                             self.move(
                                                 selected, (y, x), self.board, True
@@ -1168,7 +1207,7 @@ class Board:  # Class for any boards being created
                                             x, y
                                         )  # Changes selected square to this
                                         picked = True  # Updates picked value
-                                        print(self.posMoves(self.board[y][x], self.board))
+                                        # print(self.posMoves(self.board[y][x], self.board))
                                         self.posmovesApply(self.board[y][x], allpossible[whiteTeam[self.board[y][x]]],
                                                            self.board)
                                         self.visible(allpossible[whiteTeam[self.board[y][x]]])
@@ -1254,8 +1293,12 @@ class Board:  # Class for any boards being created
                 break
             self.refresh(grid)
         if self.turn % 2 == 0:
+            self.menuVar.winner = "black"
+            print(self.menuVar.winner)
             return "black"
         else:
+            self.menuVar.winner = "white"
+            print(self.menuVar.winner)
             return "white"
 
-b = Board()
+b = Board(None)

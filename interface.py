@@ -1,18 +1,60 @@
 import pygame_menu
 import pygame
+from gameFile import Board
 import sqlite3 as sql
 from gameFile import b
 
 # from main import b
 
 
+class Stats():
+    def __init__(self):
+        self.ID = -1
+
+    def createDB(self):
+        conn = sql.connect('database.db')
+        cur = conn.cursor()
+        cur.execute(""" CREATE TABLE IF NOT EXISTS stats
+                        (ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        elo INT(4) NOT NULL DEFAULT 1000,
+                        wins INT(20) NOT NULL DEFAULT 0,
+                        loss INT(20) NOT NULL DEFAULT 0,
+                        draw INT(20) NOT NULL DEFAULT 0)
+                        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    def printDB(self):
+        conn = sql.connect('database.db')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM stats")
+        print(cur.fetchall())
+        conn.commit()
+        conn.close()
+
+
+    def eloGrabber(self):
+        conn = sql.connect('database.db')
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT elo from stats WHERE fID = ?",
+            (self.ID,))
+        a = cur.fetchone()
+        return a[0]
+
+log = Stats()
+
+
 class Account():
     def __init__(self):
         self.loggedin = False
         self.ID = -1
+        self.admin = False
+        self.elo = None
 
     def createDB(self):
-        conn = sql.connect('logins2.db')
+        conn = sql.connect('database.db')
         cur = conn.cursor()
         cur.execute(""" CREATE TABLE IF NOT EXISTS logins
                         (ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,27 +66,29 @@ class Account():
         conn.close()
 
     def deleteAll(self):
-        conn = sql.connect('logins2.db')
+        conn = sql.connect('database.db')
         conn.execute("DROP TABLE logins")
         conn.commit()
         conn.close()
 
     def deleteEmpty(self):
-        conn = sql.connect('logins2.db')
+        conn = sql.connect('database.db')
         conn.execute("DELETE FROM logins WHERE ID > 2")
         conn.commit()
         conn.close()
 
     def createAccount(self, username, password):
-        conn = sql.connect('logins2.db')
+        conn = sql.connect('database.db')
         conn.execute("INSERT INTO logins (username, password) VALUES (?, ?)",
                      (username, password))
+
+        conn.execute("INSERT INTO stats (username) VALUES (?)", (username,))
         conn.commit()
         conn.close()
         print("Account has been created successfully.")
 
     def login(self, username, password):
-        conn = sql.connect('logins2.db')
+        conn = sql.connect('database.db')
         cur = conn.cursor()
         cur.execute(
             "SELECT ID from logins WHERE username = ? and password = ?",
@@ -52,16 +96,30 @@ class Account():
         a = cur.fetchone()
         if a == None:
             print("Your details are incorrect or not in our database.")
+            cur.close()
+            conn.close()
+            return False
         else:
             print("You're logged in with ID:", a[0])
             self.ID = a[0]
             self.loggedin = True
-        cur.close()
-        conn.close()
+            cur.execute(
+            "SELECT admin from logins WHERE ID = ?",(self.ID,))
+            b = cur.fetchone()
+            if b[0] == 1:
+                self.admin = True
+            log.ID = self.ID
+            self.elo = log.eloGrabber()
+            cur.close()
+            conn.close()
+            return True
+
+
+
 
     def printDB(self):
         if self.ID == 1:
-            conn = sql.connect('logins2.db')
+            conn = sql.connect('database.db')
             cur = conn.cursor()
             cur.execute("SELECT * FROM logins")
             print(cur.fetchall())
@@ -73,138 +131,8 @@ class Account():
     def logout(self):
         self.loggedin = False
         self.ID = -1
+        log.ID = -1
         print("You have successfully logged out.")
-
-
-# # class GUI:
-
-#     def __init__(self):
-#         pass
-
-#     def basicInterface(self):
-#         basic = Tk()
-#         basic.title("Basic Interface")
-
-#         basic.geometry('300x50')
-
-#         quitB = Button(basic, text="Quit", command=basic.destroy)
-#         quitB.place(height=50, width=100, x=200, y=0)
-
-#         createB = Button(
-#             basic,
-#             text="Create an Account",
-#             command=lambda: [basic.destroy(),
-#                              self.accountCreation()])
-#         createB.place(height=50, width=100, x=100, y=0)
-
-#         loginB = Button(basic,
-#                         text="Login",
-#                         command=lambda: [basic.destroy(),
-#                                          self.loginAccount()])
-#         loginB.place(height=50, width=100, x=0, y=0)
-
-#         basic.mainloop()
-
-#     def accountCreation(self):
-#         side = Tk()
-#         side.title("Create an Account")
-
-#         side.geometry('300x100')
-
-#         usernameE = Entry(side, width=15)
-#         usernameE.place(x=0, y=25)
-#         usernameL = Label(side, text="Username")
-#         usernameL.place(x=0, y=0)
-
-#         passwordE = Entry(side, width=14)
-#         passwordE.place(x=100, y=25)
-#         passwordL = Label(side, text="Password")
-#         passwordL.place(x=100, y=0)
-
-#         backB = Button(side,
-#                        text="Back",
-#                        command=lambda: [side.destroy(),
-#                                         self.basicInterface()])
-#         backB.place(height=50, width=100, x=0, y=50)
-
-#         enterB = Button(side,
-#                         text="Enter",
-#                         command=lambda: [
-#                             ac.createAccount(usernameE.get(), passwordE.get()),
-#                             side.destroy(),
-#                             self.basicInterface()
-#                         ])
-#         enterB.place(height=50, width=100, x=100, y=50)
-
-#         side.mainloop()
-
-#     def loginAccount(self):
-#         global side
-#         side = Tk()
-#         side.title("Login")
-
-#         side.geometry('300x100')
-
-#         usernameE = Entry(side, width=15)
-#         usernameE.place(x=0, y=25)
-#         usernameL = Label(side, text="Username")
-#         usernameL.place(x=0, y=0)
-
-#         passwordE = Entry(side, width=15)
-#         passwordE.place(x=100, y=25)
-#         passwordL = Label(side, text="Password")
-#         passwordL.place(x=100, y=0)
-
-#         backB = Button(side,
-#                        text="Back",
-#                        command=lambda: [side.destroy(),
-#                                         self.basicInterface()])
-#         backB.place(height=50, width=100, x=0, y=50)
-
-#         enterB = Button(
-#             side,
-#             text="Enter",
-#             command=lambda: [ac.login(usernameE.get(), passwordE.get())])
-#         enterB.place(height=50, width=100, x=100, y=50)
-
-#         side.mainloop()
-
-#     def mainInterface(self):
-#         main = Tk()
-#         main.title("Main Interface")
-
-#         main.geometry('600x400')
-
-#         logoutB = Button(
-#             main,
-#             text="Logout",
-#             command=lambda:
-#             [main.destroy(),
-#              ac.logout(), self.basicInterface()])
-#         logoutB.place(height=50, width=100, x=200, y=350)
-
-#         if ac.ID == 1:
-#             pDB = Button(main,
-#                          text="Print Database",
-#                          command=lambda: [ac.printDB()])
-#             pDB.place(height=50, width=100, x=400, y=350)
-
-#             play = Button(main, text="Find Game", command=lambda: [playgame()])
-#             play.place(height=50, width=100, x=100, y=350)
-
-#             pS = Button(main,
-#                         text="Print Scoreboard",
-#                         command=lambda: [print("Scoreboard")])
-#             pS.place(height=50, width=100, x=300, y=350)
-#         else:
-#             play = Button(main, text="Find Game", command=lambda: [playgame()])
-#             play.place(height=50, width=100, x=100, y=350)
-
-#             pS = Button(main,
-#                         text="Print Scoreboard",
-#                         command=lambda: [print("Scoreboard")])
-#             pS.place(height=50, width=100, x=300, y=350)
-
 
 class Menus():
 
@@ -223,14 +151,19 @@ class Menus():
         self.ac = accountVar
         self.screen = None
         self.mainmenu = None
+        self.difficulty = None
 
     def signup(self, username, password):
-        self.ac.createAccount(username, password)
+        usernameT = username.get_value()
+        passwordT = password.get_value()
+        self.ac.createAccount(usernameT, passwordT)
         return pygame_menu.events.BACK
 
     def login(self, username, password, menu):
-        self.ac.login(username, password)
-        menu.disable()
+        passwordT = username.get_value()
+        usernameT = password.get_value()
+        if self.ac.login(usernameT, passwordT):
+            menu.disable()
 
     def logout(self, menu, menu2):
         self.ac.logout()
@@ -238,9 +171,20 @@ class Menus():
         menu2.disable()
 
     def startGame(self, menu, menu2):
-        self.winner = b.gameStart()
+        b = Board(self)
+        b.openg()
         menu.enable()
         menu2.disable()
+
+    def startGameC(self, menu, menu2):
+        b = Board(self)
+        b.opengC(self.difficulty, self.ac.elo)
+        menu.enable()
+        menu2.disable()
+
+    def change_difficulty(self, tuple, difficulty):
+        self.difficulty = difficulty
+
 
     def mainLoop(self):
         pygame.init()  # Initialise pygame
@@ -251,6 +195,7 @@ class Menus():
         mainmenu = pygame_menu.Menu('Main Menu', 800, 800, theme=self.mytheme)
         signupmenu = pygame_menu.Menu('Sign Up', 800, 800, theme=self.mytheme)
         loginmenu = pygame_menu.Menu('Log In', 800, 800, theme=self.mytheme)
+        selectmenu = pygame_menu.Menu('Select Mode', 800, 800, theme=self.mytheme)
         endmenu = pygame_menu.Menu('Game Over', 800, 800, theme=self.mytheme)
         
         loginUsernameInput = loginmenu.add.text_input(
@@ -258,21 +203,19 @@ class Menus():
         loginPasswordInput = loginmenu.add.text_input(
             "Password: ",
             password=True)
-        lUsername = loginUsernameInput.get_value()
-        lPassword = loginPasswordInput.get_value()
-        loginmenu.add.button('Log In', self.login, lUsername, lPassword, mainmenu)
+        loginmenu.add.button('Log In', self.login, loginPasswordInput, loginUsernameInput, mainmenu)
         loginmenu.add.button('Back', pygame_menu.events.BACK)
+        loginmenu.disable()
         
         signUsernameInput = signupmenu.add.text_input(
             "Username: ")
         signPasswordInput = signupmenu.add.text_input(
             "Password: ",
             password=True)
-        sUsername = signUsernameInput.get_value()
-        sPassword = signPasswordInput.get_value()
-        signupmenu.add.button('Sign Up', self.signup, sUsername,
-                              sPassword)
+        signupmenu.add.button('Sign Up', self.signup, signUsernameInput,
+                              signPasswordInput)
         signupmenu.add.button('Back', pygame_menu.events.BACK)
+        signupmenu.disable()
 
         
         mainmenu.add.button('Log In', loginmenu)
@@ -281,7 +224,7 @@ class Menus():
         mainmenu.add.button('Exit', pygame_menu.events.EXIT)
         mainmenu.enable()
 
-        gamemenu.add.button('Find Game', self.startGame, endmenu, gamemenu)
+        gamemenu.add.button('Find Game', selectmenu)
         gamemenu.add.button('Log Out', self.logout, mainmenu, gamemenu)
         gamemenu.add.button('View Leaderboards', print, "leaderboards")
         gamemenu.add.button('Exit', pygame_menu.events.EXIT)
@@ -291,15 +234,24 @@ class Menus():
         adminmenu.add.button('View Leaderboards', print, "leaderboards")
         adminmenu.add.button('View Leaderboards', print, "leaderboards")
         adminmenu.add.button('Back', pygame_menu.events.BACK)
+        adminmenu.disable()
 
-        winningmessage = "Game Over, winner is ", self.winner , "!"
+        items = [('Easy', 'EASY'), ('Normal', 'NORMAL'), ('Hard', 'HARD'), ('Impossible', 'DEAD')]
+        selectmenu.add.selector('Difficulty', items, onchange=self.change_difficulty)
+        selectmenu.add.button('Find Game', self.startGameC, endmenu, selectmenu)
+        selectmenu.add.label('OR')
+        selectmenu.add.button('Play vs Friend', self.startGame, endmenu, selectmenu)
+        selectmenu.disable()
+
+
+        winningmessage = "Game Over, winner is ", self.winner, "!"
         elochange = "Your new elo is "
         endmenu.add.label(winningmessage)
         endmenu.add.label(elochange)
         endmenu.add.button('Play Again', self.startGame, endmenu, gamemenu)
         endmenu.add.button('Back', pygame_menu.events.BACK)
         endmenu.add.button('Exit', pygame_menu.events.EXIT)
-
+        endmenu.disable()
 
       
         running = True
